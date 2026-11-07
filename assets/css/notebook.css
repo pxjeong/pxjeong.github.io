@@ -1,11 +1,11 @@
 :root {
   color-scheme: dark;
-  --paper: #0f0c0c;
-  --ink: #ffffff;
-  --muted: #ffffff;
+  --paper: #110c09;
+  --ink: #fde2cc;
+  --muted: #fde2cc;
   --line: #3e2e20;
-  --accent: #b0834d;
-  --accent-heading: #94602e;
+  --accent: #b5762e;
+  --accent-heading: #b5762e;
   --heading: var(--sans);
   --sans: "Apple SD Gothic Neo", "Noto Sans CJK KR", "Malgun Gothic", sans-serif;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
