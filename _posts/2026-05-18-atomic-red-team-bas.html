@@ -1,0 +1,352 @@
+---
+layout: post
+title: "Atomic Red Team을 이용한 BAS 환경 구축 및 ATT&CK Technique 분석 실습"
+date: 2026-05-18T17:43:43+09:00
+categories: ["블로그/기술문서"]
+---
+{% raw %}
+<div class="tistory-import"><p data-ke-size="size16">전 주차때 얘기 했던 BAS를 이번 주차때는 어떻게 환경 설정을 하나 또 어떻게 설계를 하는지에 대해서 Atomic Red Team을 이용한 BAS 환경 구축 및 ATT&amp;CK Technique 분석 실습을 진행해보겠다. </p>
+<p data-ke-size="size16"><a href="https://pxjeong.tistory.com/1" rel="noopener noreferrer" target="_blank">https://pxjeong.tistory.com/1 </a>&lt;- BAS와 Wazuh의 상호관계</p>
+<figure data-ke-align="alignCenter" data-ke-type="opengraph" data-og-description="작성자 : 박세정 2026_0512 week 1 프로젝트 BAS란? 침해 및 공격 시뮬레이션(Breach and Attack Simulation)의 뜻으로 실제 환경에서 공격을 시뮬레이션을 함으로써 조직의 보안 상태를 사전 예방적으로 평가" data-og-host="pxjeong.tistory.com" data-og-image="/assets/img/posts/atomic-red-team-bas/image-29.png" data-og-source-url="https://pxjeong.tistory.com/1" data-og-title="BAS와 Wazuh의 상호관계" data-og-type="article" data-og-url="https://pxjeong.tistory.com/1" id="og_1779077976264"><a data-source-url="https://pxjeong.tistory.com/1" href="https://pxjeong.tistory.com/1" rel="noopener" target="_blank">
+<div class="og-image" style="background-image: url('/assets/img/posts/atomic-red-team-bas/image-29.png');"> </div>
+<div class="og-text">
+<p class="og-title" data-ke-size="size16">BAS와 Wazuh의 상호관계</p>
+<p class="og-desc" data-ke-size="size16">작성자 : 박세정 2026_0512 week 1 프로젝트 BAS란? 침해 및 공격 시뮬레이션(Breach and Attack Simulation)의 뜻으로 실제 환경에서 공격을 시뮬레이션을 함으로써 조직의 보안 상태를 사전 예방적으로 평가</p>
+<p class="og-host" data-ke-size="size16">pxjeong.tistory.com</p>
+</div>
+</a></figure>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이번 실습에서는 단순히 Linux 명령어를 실행하는 것이 아닌 실제 공격자가 시스템 내부에서 수행하는 정보 수집 <span style="color: #ee2323;"><b>Atomic Red Team</b></span>을 이용하여 재현해볼 예정이다.</p>
+<hr data-ke-style="style5" data-ke-type="horizontalRule"/>
+<h2 data-ke-size="size26" style="text-align: center;"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';"><b>이론</b></span></h2>
+<p data-ke-size="size18">Atomic Red Team이란?</p>
+<p data-ke-size="size16">먼저 Atomic Red Team에 대해 간단하게 설명 해보자 Atomic Red Team은 <u><span><span>MITRE ATT&amp;CK</span></span></u> 기반의 공격 시뮬레이션 도구이다.</p>
+<p data-ke-size="size16">여기서 MITRE ATT&amp;CK란 실제 공격자들이 사용하는 공격 기법들을 정리해놓은 프레임워크라고 볼 수 있다.</p>
+<p><figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="704" data-origin-width="1050"><span data-alt="MITRE ATT&amp;amp;CK Data &amp;amp; Tools" data-phocus="/assets/img/posts/atomic-red-team-bas/image-01.png" data-url="/assets/img/posts/atomic-red-team-bas/image-01.png"><img alt="MITRE ATT&amp;amp;CK Data &amp;amp; Tools" data-origin-height="704" data-origin-width="1050" decoding="async" height="448" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-01.png" width="668"/></span><figcaption>MITRE ATT&amp;CK Data &amp; Tools</figcaption>
+</figure>
+</p>
+<p data-end="584" data-ke-size="size16" data-start="557"> </p>
+<p data-end="584" data-ke-size="size16" data-start="557">예를 들어 공격자는 시스템 침투 이후 가장 먼저</p>
+<ol data-end="641" data-ke-list-type="decimal" data-start="585" style="list-style-type: decimal;">
+<li data-end="601" data-start="585">현재 로그인된 사용자 확인</li>
+<li data-end="614" data-start="602">운영체제 종류 확인</li>
+<li data-end="627" data-start="615">네트워크 구조 파악</li>
+<li data-end="641" data-start="628">중요 파일 위치 탐색</li>
+</ol>
+<p data-ke-size="size16">같은 행동들을 수행하게 된다. Atomic Red Team은 이러한 공격자의 행동들을 작은 단위로 직접 테스트할 수 있도록 만들어진 도구이다.</p>
+<ul data-end="798" data-ke-list-type="disc" data-start="741" style="list-style-type: disc;">
+<li data-end="766" data-start="741">MITRE ATT&amp;CK = 공격 기법 이론</li>
+<li data-end="798" data-start="767">Atomic Red Team = 실제 공격 기법 실습</li>
+</ul>
+<p data-end="858" data-ke-size="size16" data-start="819">이번 실습에서는 총 4개의 ATT&amp;CK Technique를 분석하였다.</p>
+<div>
+<p data-ke-size="size16"> </p>
+<table border="1" data-end="986" data-ke-align="alignLeft" data-start="860" style="border-collapse: collapse; width: 91.6279%; height: 241px;">
+<tbody>
+<tr style="height: 23px;">
+<td style="text-align: center; height: 23px; width: 11.4213%;"><b>기술</b></td>
+<td style="text-align: center; height: 23px; width: 88.5787%;"><b>설명</b></td>
+</tr>
+<tr data-end="910" data-start="889" style="height: 23px;">
+<td data-col-size="sm" data-end="897" data-start="889" style="height: 23px; text-align: center; width: 11.4213%;">T1082</td>
+<td data-col-size="sm" data-end="910" data-start="897" style="height: 23px; width: 88.5787%;">시스템 정보 수집 ( 공격자가 대상 환경을 파악하는 단계 분석 가능 )</td>
+</tr>
+<tr data-end="935" data-start="911" style="height: 23px;">
+<td data-col-size="sm" data-end="919" data-start="911" style="height: 23px; text-align: center; width: 11.4213%;">T1033</td>
+<td data-col-size="sm" data-end="935" data-start="919" style="height: 23px; width: 88.5787%;">현재 사용자 정보 확인 ( 계정 정보 수집 행위 분석 가능 )</td>
+</tr>
+<tr data-end="960" data-start="936" style="height: 23px;">
+<td data-col-size="sm" data-end="944" data-start="936" style="height: 23px; text-align: center; width: 11.4213%;">T1083</td>
+<td data-col-size="sm" data-end="960" data-start="944" style="height: 23px; width: 88.5787%;">파일 및 디렉터리 탐색 ( 공격자가 민감 파일이나 경로를 찾는 행위 분석 가능 )</td>
+</tr>
+<tr data-end="986" data-start="961" style="height: 23px;">
+<td data-col-size="sm" data-end="969" data-start="961" style="height: 23px; text-align: center; width: 11.4213%;">T1016</td>
+<td data-col-size="sm" data-end="986" data-start="969" style="height: 23px; width: 88.5787%;">네트워크 설정 정보 수집 ( 공격자가 내부 네트워크 구조를 파악하는 단계 분석 가능 )</td>
+</tr>
+<tr>
+<td style="text-align: center; width: 11.4213%;">T1049</td>
+<td style="width: 88.5787%;">네트워크 연결 상태 확인 ( 공격자가 현재 연결된 세션이나 통신 상태를 파악하는 행위 분석 가능 )</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p data-end="1075" data-ke-size="size16" data-start="988"> </p>
+<p data-end="1075" data-ke-size="size16" data-start="988">이러한 정보들은 공격자가 추가 공격을 수행하기 전 반드시 수집하는 정보들이기 때문에 전 주차때 설명한 <u>정찰 단계</u>에서 매우 중요하게 사용된다.</p>
+<p data-end="1075" data-ke-size="size16" data-start="988"> </p>
+<p data-end="1075" data-ke-size="size16" data-start="988">이번 실습에서는 이러한 ATT&amp;CK Technique들을 직접 테스트하기 위해 <b>VMware</b> 기반의 <b>가상 환경</b>을 구축하였다.</p>
+<p data-ke-size="size16">실제 공격 시뮬레이션은 운영 중인 PC 환경에서 바로 수행하기에는 위험 하기에 일반적으로는 VMware와 같은 가상화 환경을 사용하여 가상환경을 구성하게 된다.</p>
+<hr data-ke-style="style5" data-ke-type="horizontalRule"/>
+<h2 data-end="547" data-ke-size="size26" data-start="474" style="text-align: center;"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';"><b>실습</b></span></h2>
+<p data-end="547" data-ke-size="size16" data-start="474">먼저 VMware를 설치해야 한다.</p>
+<ul data-ke-list-type="disc" style="list-style-type: disc;">
+<li><a href="https://www.vmware.com/products/desktop-hypervisor/workstation-and-fusion">VMware Workstation</a></li>
+</ul>
+<figure data-ke-align="alignCenter" data-ke-type="opengraph" data-og-description="VMware Workstation and VMware Fusion desktop hypervisors are the industry leaders in local virtualization. Learn how VMware’s local virtualization solutions provide an easier way to build, test and deliver any app for any device or cloud." data-og-host="www.vmware.com" data-og-image="/assets/img/posts/atomic-red-team-bas/image-30.png" data-og-source-url="https://www.vmware.com/products/desktop-hypervisor/workstation-and-fusion" data-og-title="Fusion and Workstation | VMware" data-og-type="website" data-og-url="https://www.vmware.com/products/desktop-hypervisor/workstation-and-fusion" id="og_1779087191811"><a data-source-url="https://www.vmware.com/products/desktop-hypervisor/workstation-and-fusion" href="https://www.vmware.com/products/desktop-hypervisor/workstation-and-fusion" rel="noopener" target="_blank">
+<div class="og-image" style="background-image: url('/assets/img/posts/atomic-red-team-bas/image-30.png');"> </div>
+<div class="og-text">
+<p class="og-title" data-ke-size="size16">Fusion and Workstation | VMware</p>
+<p class="og-desc" data-ke-size="size16">VMware Workstation and VMware Fusion desktop hypervisors are the industry leaders in local virtualization. Learn how VMware’s local virtualization solutions provide an easier way to build, test and deliver any app for any device or cloud.</p>
+<p class="og-host" data-ke-size="size16">www.vmware.com</p>
+</div>
+</a></figure>
+<p data-ke-size="size16">VMware는 PC 안에서 여러 운영체제를 동시에 실행할 수 있게 해주는 가상화 하는 프로그램이다</p>
+<p data-ke-size="size16">쉽게 말하면 "컴퓨터 안에 또 다른 가상 컴퓨터를 만드는 프로그램" 이라고 설명 할 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<p data-end="955" data-ke-size="size16" data-start="915">다음으로 VMware 안에서 사용할 Linux 운영체제를 설치해야 한다.</p>
+<p data-end="1011" data-ke-size="size16" data-start="957">이번 실습에서는 <span><span>Rocky Linux</span></span>를 사용하였다. Rocy Linux는 기업 서버 환경에서도 자주 사용되고 많은 Linux 배포판중 하나이며, 보안 실습이나 서버 환경 구축 실습에서도 많이 활용 된다.</p>
+<p data-end="1194" data-ke-size="size16" data-start="1155">Rocky Linux ISO 파일은 공식 사이트에서 다운로드 가능하다.</p>
+<ul data-ke-list-type="disc" style="list-style-type: disc;">
+<li><a href="https://rockylinux.org/download?utm_source=chatgpt.com">Rocky Linux Download</a></li>
+</ul>
+<figure data-ke-align="alignCenter" data-ke-type="opengraph" data-og-description="Rocky Linux is an open enterprise Operating System designed to be 100% bug-for-bug compatible with Enterprise Linux." data-og-host="rockylinux.org" data-og-image="/assets/img/posts/atomic-red-team-bas/image-31.png" data-og-source-url="https://rockylinux.org/download?utm_source=chatgpt.com" data-og-title="Rocky Linux" data-og-type="website" data-og-url="https://rockylinux.org" id="og_1779087427148"><a data-source-url="https://rockylinux.org/download?utm_source=chatgpt.com" href="https://rockylinux.org/download?utm_source=chatgpt.com" rel="noopener" target="_blank">
+<div class="og-image" style="background-image: url('/assets/img/posts/atomic-red-team-bas/image-31.png');"> </div>
+<div class="og-text">
+<p class="og-title" data-ke-size="size16">Rocky Linux</p>
+<p class="og-desc" data-ke-size="size16">Rocky Linux is an open enterprise Operating System designed to be 100% bug-for-bug compatible with Enterprise Linux.</p>
+<p class="og-host" data-ke-size="size16">rockylinux.org</p>
+</div>
+</a></figure>
+<p data-ke-size="size16"> </p>
+<p><figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="878" data-origin-width="1394"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-02.png" data-url="/assets/img/posts/atomic-red-team-bas/image-02.png"><img alt="" data-origin-height="878" data-origin-width="1394" decoding="async" height="378" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-02.png" width="600"/></span></figure>
+</p>
+<p data-ke-size="size16">이렇게 모두 깔았다면 VMware를 들어가서 File을 눌러서 New Virtual Machine을 누르거나</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="378" data-origin-width="1172"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-03.png" data-url="/assets/img/posts/atomic-red-team-bas/image-03.png"><img alt="" data-origin-height="378" data-origin-width="1172" decoding="async" height="109" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-03.png" width="339"/></span></figure>
+</p>
+<p data-ke-size="size16">Home 탭에 Create a New Virtual Machine을 눌러준다.</p>
+<p data-ke-size="size16">그리고 Rocky를 깔아주기 위한 설정들을 해준다.</p>
+<p><figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="854" data-origin-width="1386"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-04.png" data-url="/assets/img/posts/atomic-red-team-bas/image-04.png"><img alt="" data-origin-height="854" data-origin-width="1386" decoding="async" height="370" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-04.png" width="600"/></span></figure>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="852" data-origin-width="1358"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-05.png" data-url="/assets/img/posts/atomic-red-team-bas/image-05.png"><img alt="" data-origin-height="852" data-origin-width="1358" decoding="async" height="376" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-05.png" width="600"/></span></figure>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="840" data-origin-width="1368"><span data-alt="Processors 설정은 각자 컴퓨터 성능에 따라 바꿔준다." data-phocus="/assets/img/posts/atomic-red-team-bas/image-06.png" data-url="/assets/img/posts/atomic-red-team-bas/image-06.png"><img alt="Processors 설정은 각자 컴퓨터 성능에 따라 바꿔준다." data-origin-height="840" data-origin-width="1368" decoding="async" height="368" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-06.png" width="600"/></span><figcaption>Processors 설정은 각자 컴퓨터 성능에 따라 바꿔준다.</figcaption>
+</figure>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="844" data-origin-width="1376"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-07.png" data-url="/assets/img/posts/atomic-red-team-bas/image-07.png"><img alt="" data-origin-height="844" data-origin-width="1376" decoding="async" height="368" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-07.png" width="600"/></span></figure>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="864" data-origin-width="1372"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-08.png" data-url="/assets/img/posts/atomic-red-team-bas/image-08.png"><img alt="" data-origin-height="864" data-origin-width="1372" decoding="async" height="378" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-08.png" width="600"/></span></figure>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="842" data-origin-width="1370"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-09.png" data-url="/assets/img/posts/atomic-red-team-bas/image-09.png"><img alt="" data-origin-height="842" data-origin-width="1370" decoding="async" height="369" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-09.png" width="600"/></span></figure>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="848" data-origin-width="1382"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-10.png" data-url="/assets/img/posts/atomic-red-team-bas/image-10.png"><img alt="" data-origin-height="848" data-origin-width="1382" decoding="async" height="368" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-10.png" width="600"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이렇게 Rocky Linux를 설치를 다 마쳤다면 VMware를 부팅해준다.</p>
+<p><figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="796" data-origin-width="1376"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-11.png" data-url="/assets/img/posts/atomic-red-team-bas/image-11.png"><img alt="" data-origin-height="796" data-origin-width="1376" decoding="async" height="347" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-11.png" width="600"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">부팅을 다 했다면 깔았던 Rocky Linux 9.5(최신 버전)을 선택 해준다.</p>
+<p><figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="780" data-origin-width="1150"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-12.png" data-url="/assets/img/posts/atomic-red-team-bas/image-12.png"><img alt="" data-origin-height="780" data-origin-width="1150" decoding="async" height="407" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-12.png" width="600"/></span></figure>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="782" data-origin-width="1304"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-13.png" data-url="/assets/img/posts/atomic-red-team-bas/image-13.png"><img alt="" data-origin-height="782" data-origin-width="1304" decoding="async" height="360" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-13.png" width="600"/></span></figure>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="790" data-origin-width="1268"><span data-alt="여기서 root란 linux에선 관리자 계정을 root라고 부른다." data-phocus="/assets/img/posts/atomic-red-team-bas/image-14.png" data-url="/assets/img/posts/atomic-red-team-bas/image-14.png"><img alt="여기서 root란 linux에선 관리자 계정을 root라고 부른다." data-origin-height="790" data-origin-width="1268" decoding="async" height="374" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-14.png" width="600"/></span><figcaption>여기서 root란 linux에선 관리자 계정을 root라고 부른다.</figcaption>
+</figure>
+</p>
+<p data-ke-size="size16">느낌표 표시들을 하나씩 눌러주어 모두 설정을 해준다. 그러고 나서 설치 시작(B) 버튼을 눌러서 설치를 끝내주면 설치가 다 끝나게 된다.</p>
+<p data-ke-size="size16" style="color: #333333; text-align: start;">이제 Atomic Red Team 실습 환경 구성을 진행을 해보자 Linux 서버는 Windows처럼 프로그램을 클릭해서 설치하는 방식보다는 명령어를 이용하여 필요한 도구들을 직접 설치하면서 환경을 구성하게 된다.</p>
+<p data-ke-size="size16" style="color: #333333; text-align: start;">이번 실습에서는 먼저<span> </span><b>Git</b>이라는 프로그램을 설치하였다.</p>
+<p data-ke-size="size16" style="color: #333333; text-align: start;"> </p>
+<p data-ke-size="size16">Rocky Linux 화면에서 윈도우 키를 눌러서 터미널 모양을 눌러서 터미널을 열어준다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="1012" data-origin-width="874"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-15.png" data-url="/assets/img/posts/atomic-red-team-bas/image-15.png"><img alt="" data-origin-height="1012" data-origin-width="874" decoding="async" height="1012" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-15.png" width="374"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">그리고 터미널에 다음과 같은 명령어들을 입력해준다.</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779089744409"><code>sudo dnf install git -y</code></pre>
+<p data-ke-size="size16">sudo =&gt; 관리자 권한으로 실행한다.</p>
+<p data-ke-size="size16">dnf =&gt; Rocky Linux 패키지 설치 명령어</p>
+<p data-ke-size="size16">install =&gt; 프로그램 설치 수행</p>
+<p data-ke-size="size16">git =&gt; GitHub 프로젝트 다운로드 도구</p>
+<p data-ke-size="size16">-y =&gt; 설치 과정에서 자동으로 Yes 처리</p>
+<p data-ke-size="size16">“관리자 권한으로 Git 프로그램을 설치하겠다” 라는 의미의 명령어들이다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">여기서 의문점이 드는 사람들이 있을텐데 그렇다면 왜 Git을 설치해야 할까?</p>
+<p data-end="724" data-ke-size="size16" data-start="678">Atomic Red Team은 <b>GitHub</b>라는 <b>오픈소스 저장소 사이트</b>에서 제공된다.</p>
+<p data-end="803" data-ke-size="size16" data-start="726">GitHub는 개발자들이 프로그램이나 프로젝트 파일을 공유하는 플랫폼이고 Atomic Red Team 또한 GitHub에 공개되어 있다.</p>
+<p data-end="882" data-ke-size="size16" data-start="805">Git을 이용하면 GitHub에 올라와 있는 Atomic Red Team 프로젝트 전체를 Linux 환경으로 다운로드할 수 있게 된다.</p>
+<p data-end="882" data-ke-size="size16" data-start="805">또한 Git은 실무에서도 많이 사용한다.</p>
+<ul data-end="953" data-ke-list-type="disc" data-start="914" style="list-style-type: disc;">
+<li data-end="953" data-start="914"><span data-state="closed"><a href="https://github.com/redcanaryco/atomic-red-team?utm_source=chatgpt.com">Atomic Red Team GitHub</a>  Atomic Red Team 공식 GitHub 주소</span><span data-state="closed"></span></li>
+</ul>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"><span data-state="closed">Git 설치가 완료 되면 이제 Atomic Red Team 프로젝트를 다운로드를 한다.</span></p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779089972926"><code>git clone https://github.com/redcanaryco/atomic-red-team.git</code></pre>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">git clone =&gt; GitHub 저장소 전체 다운로드(복사) 를 의미한다.</p>
+<p data-ke-size="size16">이렇게 다운로드 하게 된다면</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779090021747"><code>atomic-red-team</code></pre>
+<p data-ke-size="size16">이라는 폴더가 생성되는 것을 볼 수 있다.</p>
+<p data-ke-size="size16">이후 현재 폴더 안 파일 목록을 확인 하는 명령어인 ls를 입력하면 확인 할 수 있고 여기서 atomic-red-team 폴더가 보이면 정상적으로 다운로드가 완료된 것이다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">다음 단계로 Atomic Red Team 폴더 내부로 이동하여 실제 ATT&amp;CK Techique 테스트 파일들을 분석 해볼거다.</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779090141952"><code>cd atomic-red-team</code></pre>
+<p data-ke-size="size16">여기서 cd는 Change Directory의 약자로 현재 작업 위치를 변경 한다는 의미이다. 지금 하는 작업은 Atomic Red Team 실습 파</p>
+<p data-ke-size="size16">일이 존재하는 작업 공간으로 이동하는 과정이다.</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779090225151"><code>cd atomics</code></pre>
+<p data-ke-size="size16">를 입력 하면 ATT&amp;CK Technique별 테스트 파일들이 저장된 폴더로 이동할 수 있다. 이제 여기서 현재 위치나 특정 경로의 디렉토리의 내용의 리스트를 출력하는 명령어인 ls를 입력 하면</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779090397112"><code>ls</code></pre>
+<p data-ke-size="size16">=&gt; 결과</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779090402596"><code>T1016
+T1033
+T1049
+T1082
+T1083
+//등등</code></pre>
+<p data-ke-size="size16">등등 많은 Technique 폴더들이 존재하는 것을 확인할 수 있다.</p>
+<hr data-ke-style="style3" data-ke-type="horizontalRule"/>
+<p data-ke-size="size16">첫 번째로 <b>T1082(System Information Discovery)</b>를 분석하였다. T1082는 시스템 정보 분석 방법으로 정보를 수집하는 공격 기법이다. 공격자는 시스템 정보를 확인함으로써 Linux인지 Windows인지, 어떤 버전인지, 얼마나 오랫동안 켜져 있었는지 등등을 분석해서 이후 사용할 공격 방식을 결정 할 수 있다.</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779090581951"><code>uname -a</code></pre>
+<p data-ke-size="size16">이 명령어는 현재 시스템의 커널 및 운영체제 정보를 출력하는 명령어이다.</p>
+<p data-ke-size="size16"> </p>
+<p><figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="84" data-origin-width="2368"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-16.png" data-url="/assets/img/posts/atomic-red-team-bas/image-16.png"><img alt="" data-origin-height="84" data-origin-width="2368" decoding="async" height="31" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-16.png" width="860"/></span></figure>
+</p>
+<p data-ke-size="size16">이렇게 나오면 정상이다.</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779090812999"><code>cat /etc/os-release</code></pre>
+<p data-ke-size="size16">이 명령어는 Linux 배포판 정보를 확인하는 명령어이다. 현재의 Rocky Linux 환경 정보를 확인 할 수 있다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="818" data-origin-width="788"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-17.png" data-url="/assets/img/posts/atomic-red-team-bas/image-17.png"><img alt="" data-origin-height="818" data-origin-width="788" decoding="async" height="343" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-17.png" width="330"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779090688052"><code>uptime</code></pre>
+<p data-ke-size="size16">이 명령어는 시스템이 얼마나 오랫동안 실행 되고 있었는지를 확인 하는 명령어이다.</p>
+<p data-ke-size="size16">공격자는 서버 uptime 정보를 통해서 재부팅 여부, 운영 상태, 서버 안정성 등을 추측 할 수 있다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="86" data-origin-width="1060"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-18.png" data-url="/assets/img/posts/atomic-red-team-bas/image-18.png"><img alt="" data-origin-height="86" data-origin-width="1060" decoding="async" height="44" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-18.png" width="540"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이러한 명령 실행 이후에는 단순 출력 결과만 보는 것이 아닌 시스템에 어떤 흔적들이 남았는지도 함께 분석해야한다.</p>
+<p data-ke-size="size16">Linux에서는 사용자가 입력한 명령들이 history에 저장된다.</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779090991416"><code>history</code></pre>
+<p data-ke-size="size16">이러한 명령어를 입력 하거나</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779091003130"><code>cat ~/.bash_history</code></pre>
+<p data-ke-size="size16">이 명령어를 입력 하면 실행 흔적들을 확인 할 수 있다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="1060" data-origin-width="1218"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-19.png" data-url="/assets/img/posts/atomic-red-team-bas/image-19.png"><img alt="" data-origin-height="1060" data-origin-width="1218" decoding="async" height="1060" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-19.png" width="427"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<hr data-ke-style="style3" data-ke-type="horizontalRule"/>
+<p data-ke-size="size16">이제 두번째 <b>ATT&amp;CK Technique인 T1033(System Owner/User Discovery)</b>를 분석해보겠다.</p>
+<p data-ke-size="size16">이 기법은 현재 사용자 정보 확인을 하는 단계이다. 실제 공격자는 시스템 침투 이후 가장 먼저 현재 로그인 사용자, 관리자(root) 권한 여부, 활성 사용자 목록 등을 확인하게 된다.</p>
+<p data-ke-size="size16">이러한 정보들은 이후 권한 상승(Privilege Escalation) 공격이나 계정 탈취 공격 과정에서 매우 중요하게 사용된다.</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779091401516"><code>whoami</code></pre>
+<p data-ke-size="size16">이 명령어는 현재 로그인되어 있는 사용자 계정을 출력한다.</p>
+<p data-ke-size="size16">현재 내가 어떤 계정으로 시스템을 사용 중인지를 확인하는 명령어이다.</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779091454360"><code>id</code></pre>
+<p data-ke-size="size16">이 명령어는 사용자 ID, 그룹 ID, 현재 속한 권한 그룹등을 출력하는 명령어이다.</p>
+<p data-ke-size="size16">특히 사용자가 wheel 그룹이나 root 권한과 관련된 그룹에 포함되어 있는 경우 공격자는 관리자 권한 획득 가능성을 분석할 수 있다. (wheel 그룹이란 일반 사용자가 최고 관리자 권한(sudo, su 등)을 일시적으로 대행할 수 있도록 허가 받은 관리자 그룹)</p>
+<p><figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="78" data-origin-width="2102"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-20.png" data-url="/assets/img/posts/atomic-red-team-bas/image-20.png"><img alt="" data-origin-height="78" data-origin-width="2102" decoding="async" height="78" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-20.png" width="2102"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779091631953"><code>who</code></pre>
+<p data-ke-size="size16">이 명령어는 현재 시스템에 로그인 되어 있는 사용자 목록을 출력하는 명령어이다.</p>
+<p data-ke-size="size16">공격자는 이를 통해서 현재 접속 중인 사용자, 로그인 시간, 접속 위치 등을 확인 할 수 있다.</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779091685867"><code>w</code></pre>
+<p data-ke-size="size16">이 명령어는 현재 로그인된 사용자와 함께 어떤 작업을 수행 중인지, 시스템 사용 시간, CPU 사용 정보 등을 출력한다.</p>
+<p data-ke-size="size16">공격자는 현재 사용자의 활동 상태까지 확인 할 수 있게 된다.</p>
+<hr data-ke-style="style3" data-ke-type="horizontalRule"/>
+<p data-ke-size="size16">다음으로 분석한 ATT&amp;CK Technique는 <b>T1083(File and Directory Discovery)</b>이다. 파일 및 디렉터리 탐색하는 단계이다.</p>
+<p data-ke-size="size16">실제 공격자는 시스템 침투 이후 중요 설정 파일 이라던지 계정 정보, 백업 파일 데이터 저장 위치 등을 찾기 위해서 파일 탐색을 수행한다. 특히 Linux 환경에서는 중요한 시스템 파일들이 특정 경로에 저장되어 있기에 파일 탐색은 공격 과정에서 매우 중요한 단계라고 볼 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">아까 전 사용했던 명령어인 ls 명령어도 여기서 사용된다.</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779092018330"><code>find /tmp</code></pre>
+<p data-ke-size="size16">이 명령어는 /tmp 경로 내부 파일들을 탐색하는 명령어이다. Linux의 /tmp 디렉터리는 임시 파일들이 저장되어 있는 공간이며 실제 공격자들도 악성 파일이나 임시 스크립트를 저장하는 위치로 자주 사용한다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="1396" data-origin-width="1886"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-21.png" data-url="/assets/img/posts/atomic-red-team-bas/image-21.png"><img alt="" data-origin-height="1396" data-origin-width="1886" decoding="async" height="432" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-21.png" width="584"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779092088757"><code>file /etc/passwd</code></pre>
+<p data-ke-size="size16">이 명령어는 특정 파일의 종류를 분석하는 명령어이다. /etc/passwd 파일은 Linux 사용자 정보와 관련된 중요한 시스템 파일 중 하나이고 공격자는 이러한 파일들을 확인하여 계정 구조와 사용자 목록, 시스템 구성 등을 확인 할 수 있다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="90" data-origin-width="738"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-22.png" data-url="/assets/img/posts/atomic-red-team-bas/image-22.png"><img alt="" data-origin-height="90" data-origin-width="738" decoding="async" height="62" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-22.png" width="508"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<hr data-ke-style="style3" data-ke-type="horizontalRule"/>
+<p data-ke-size="size16">다음으로 분석한 ATT&amp;CK Technique는 <b>T1016(System Network Configuration Discovery)</b>이다. 이 기법은 네트워크 설정 정보 수집을 하는 단계이다. 실제 공격자는 시스템 침투 이후에 내부 IP 주소, 게이트웨이, DNS 정보, 내부 네트워크 구조등을 파악하여 다양한 공격을 수행 할 수 있다. 네트워크 정보 수집은 내부 확산 공격을 위한 핵심 단계라고 볼 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779092347460"><code>ip addr</code></pre>
+<p data-ke-size="size16">이 명령어는 현재 시스템의 네트워크 인터페이스와 IP 주소 정보를 출력 하는 명령어이다.</p>
+<p data-end="2744" data-ke-size="size16" data-start="2733">공격자는 이를 통해내부 IP 주소, 사용 중인 네트워크 인터페이스, 네트워크 대역 등을 확인할 수 있다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="1148" data-origin-width="1648"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-23.png" data-url="/assets/img/posts/atomic-red-team-bas/image-23.png"><img alt="" data-origin-height="1148" data-origin-width="1648" decoding="async" height="1148" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-23.png" width="599"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779092396856"><code>route</code></pre>
+<p data-ke-size="size16">이 명령어는 시스템의 라우팅 정보를 출력하는 명령어이다.</p>
+<p data-ke-size="size16">기본 게이트웨이, 패킷 이동 경로 등을 확인 할 수 있다. 공격자는 이 정보들을 통해 내부 네트워크 구조를 분석 할 수 있다.</p>
+<p><figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="168" data-origin-width="1396"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-24.png" data-url="/assets/img/posts/atomic-red-team-bas/image-24.png"><img alt="" data-origin-height="168" data-origin-width="1396" decoding="async" height="168" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-24.png" width="1396"/></span></figure>
+</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779092625867"><code>cat /etc/hosts</code></pre>
+<p data-ke-size="size16">/etc/hosts 파일은 로컬 시스템의 호스트 이름과 IP 주소 정보를 저장하는 파일이다</p>
+<p data-ke-size="size16">이 명령어는 내부 서버 이름, 내부 시스템 주소등을 파악하는 명령어이다.</p>
+<p><figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="128" data-origin-width="1344"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-25.png" data-url="/assets/img/posts/atomic-red-team-bas/image-25.png"><img alt="" data-origin-height="128" data-origin-width="1344" decoding="async" height="128" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-25.png" width="1344"/></span></figure>
+</p>
+<p data-ke-size="size16">.</p>
+<hr data-ke-style="style3" data-ke-type="horizontalRule"/>
+<p data-ke-size="size16">마지막으로 분석한 ATT&amp;CK Technique는 <b>T1049(System Network Connections Discovery)</b>이다. 현재 연결된 세션이나 통신 상태를 파악하는 행위 분석하는 단계이다. 실제 공격자는 시스템 침투 이후에 현재 어떤 서버와 통신 중이고 어떤 포트가 열려 있는지, 활성 네트워크 연결이 존재하는지 등을 확인하여 추가 공격 가능성을 분석하게 된다.</p>
+<p data-ke-size="size16">특히 내부 네트워크 환경에서는 현재 연결 상태를 분석함으로써 내부 서버 식별, 원격 접속 확인, 백그라운드 서비스 탐색 등이 가능하기에 매우 자주 사용되는 정보 수집 기법 중 하나이다.</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779093136129"><code>netstat -antp</code></pre>
+<p data-ke-size="size16">이 명령어는 현재 시스템의 네트워크 연결 상태를 출력하는 명령어이다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="330" data-origin-width="1662"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-26.png" data-url="/assets/img/posts/atomic-red-team-bas/image-26.png"><img alt="" data-origin-height="330" data-origin-width="1662" decoding="async" height="140" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-26.png" width="705"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">여기서 -a =&gt; 전체 연결 표시, -n =&gt; IP 및 포트를 숫자로 출력, -t =&gt; TCP 연결 표시, -p =&gt; 프로세스 정보 출력을 의미한다.</p>
+<p data-ke-size="size16">공격자는 이를 통해서 현재 연결 중인 세션이나 서비스 상태를 분석 할 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779093229911"><code>ss -ant</code></pre>
+<p data-end="785" data-ke-size="size16" data-start="738">ss 명령어는 netstat와 유사하게 네트워크 소켓 상태를 출력하는 명령어이다. 최근 Linux 환경에서는 netstat보다 ss 명령어가 더 빠르고 자주 사용된다. </p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="258" data-origin-width="2602"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-27.png" data-url="/assets/img/posts/atomic-red-team-bas/image-27.png"><img alt="" data-origin-height="258" data-origin-width="2602" decoding="async" height="80" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-27.png" width="810"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">공격자는 이 명령어를 통해서 활성 TCP 연결, LISTEN 상태 포트, 네트워크 통신 상태 등을 확인 할 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779093323456"><code>lsof -i</code></pre>
+<p data-ke-size="size16">이 명령어는 현재 열려 있는 파일을 확인 하는 명령어이다. Linux에서는 네트워크 연결 또한 파일처럼 관리되기 때문에 -i 옵션을 사용하면 현재 사용 중인 네트워크 연결 정보를 출력할 수 있다. 공격자는 어떤 프로그램이 네트워크를 사용 중인지와 어떤 포트와 연결 되어 있는지 등을 확인 할 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<hr data-ke-style="style3" data-ke-type="horizontalRule"/>
+<p data-ke-size="size16">추가로 이제 실행 이후에는 시스템 내부에 어떤 흔적들이 남았는지도 분석 해보자</p>
+<p data-ke-size="size16">먼저 /tmp 디렉터리를 확인 해보자 </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779094723211"><code>ls -al /tmp</code></pre>
+<p data-end="896" data-ke-size="size16" data-start="819">또는</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779094768148"><code>ls /tmp</code></pre>
+<p data-end="896" data-ke-size="size16" data-start="819">Linux의 /tmp 경로는 임시 파일 저장 공간으로 사용되며, 실제 공격자들도 악성 스크립트나 임시 파일 저장 위치로 자주 활용한다.</p>
+<p data-end="943" data-ke-size="size16" data-start="898">따라서 보안 분석 과정에서는 /tmp 경로를 우선적으로 확인하는 경우가 많다.</p>
+<p><figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="1036" data-origin-width="2252"><span data-phocus="/assets/img/posts/atomic-red-team-bas/image-28.png" data-url="/assets/img/posts/atomic-red-team-bas/image-28.png"><img alt="" data-origin-height="1036" data-origin-width="2252" decoding="async" height="1036" loading="lazy" src="/assets/img/posts/atomic-red-team-bas/image-28.png" width="2252"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">만약 자기가 txt 파일로 만들어서 결과들을 보고 싶다면</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779095046798"><code>uname -a &gt; result.txt</code></pre>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">또는</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779095052939"><code>whoami &gt; user_result.txt</code></pre>
+<p data-ke-size="size16">을 해서 ls로 확인을 하면 result.txt 파일이 생긴것을 볼 수 있다.</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779095170323"><code>cat result.txt</code></pre>
+<p data-ke-size="size16">명령어를 통해서 파일 내용을 출력을 하여 확인 할 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">다음으로 실행 로그(csv)를 만들어보자</p>
+<p data-ke-size="size16">간단하게 실습 로그를 남기자면</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779095233090"><code>history &gt; command_log.csv</code></pre>
+<p data-ke-size="size16">이러면 현재까지 실행한 명령 기록들을 csv 파일 형태로 저장한것이다.</p>
+<p data-ke-size="size16">이러고 아까 전 방법과 같이 ls 와 cat command_log.csv를 써서 확인 가능하다</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">시스템 흔적 분석을 해보자</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779095340811"><code>history</code></pre>
+<p data-ke-size="size16">또는</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779095347788"><code>cat ~/.bash_history</code></pre>
+<p data-ke-size="size16">을 쓴다면 현재까지의 명령어 흔적들을 확인 할 수 있다. 이 명령어를 통해서 공격자가 공격 수행 후 시스템 내부에 흔적이 남는것을 확인 할 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">하는김에 Cleanup 전후 변화도 확인 해보자</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size18">Cleanup 전</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779095494677"><code>ls</code></pre>
+<p data-ke-size="size16">결과</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779095508776"><code>result.txt
+command_log.csv</code></pre>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size18">Cleanup 수행</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779095565690"><code>rm result.txt
+rm command_log.csv</code></pre>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size18">Cleanup 후</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1779095592646"><code>ls</code></pre>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">파일이 삭제 된것을 볼 수 있다.</p>
+<hr data-ke-style="style5" data-ke-type="horizontalRule"/>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이번 실습을 통해서 단순하고 짧은 Linux 명령어들도 실제 공격자의 정보 수집 과정에서 중요한 역할을 하는 점을 확인 해보았다.</p>
+<p data-ke-size="size16">또한 공격자는 정보를 수집하면서 동시에 시스템 내부에서 파일 접근 기록, bash history 등 다양한 흔적을 남기게 된다는 점도 확인 할 수 있었다.</p>
+<p data-ke-size="size16"> </p></div>
+{% endraw %}
