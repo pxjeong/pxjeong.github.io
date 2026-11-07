@@ -32,7 +32,7 @@ tags: [web, security]
 - 공통 메뉴와 푸터: `_layouts/default.html`
 - 배경·글자·포인트 색: `assets/css/notebook.css`의 `:root`
 
-배경 `#110C09`, 기본 글자 `#FDE2CC`, 강조 글자 `#B5762E`를 사용합니다. 홈의 작은 닥스훈트 그림은 `_includes/dachshund.svg`에서 관리합니다. 서체는 기기에 설치된 한국어 고딕체를 사용하며 외부 폰트를 내려받지 않습니다.
+배경 `#110C09`, 기본 글자 `#FDE2CC`, 강조 글자 `#B5762E`를 사용합니다. 홈의 작은 닥스훈트 그림은 `_includes/dachshund.svg`에서 관리합니다. 서체는 첨부받은 Gmarket Sans를 `assets/fonts/gmarket/`에서 자체 제공합니다. Light(300), Medium(400), Bold(700) 원본 TTF와 내장 라이선스 전문을 보관합니다. 코드 블록은 고정폭 글꼴을 유지합니다.
 
 제목과 메뉴에는 짧은 명사형을 쓰고, 본문에는 자연스러운 문장을 사용합니다. 새로운 활동 이력, 문제 풀이, 수상 내역은 실제 기록이 있을 때 추가합니다.
 

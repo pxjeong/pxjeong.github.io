@@ -12,6 +12,7 @@
 | 블로그 이름·계정·기본 정보 | [_config.yml](_config.yml) | `title`, `social` 등 |
 | 상단 메뉴·하단 링크 | [_layouts/default.html](_layouts/default.html) | `nav`, `site-footer` 부분 |
 | 색깔·크기·여백 | [assets/css/notebook.css](assets/css/notebook.css) | 색깔은 맨 위 `:root` |
+| 폰트 | [assets/fonts/gmarket/](assets/fonts/gmarket/), [assets/css/notebook.css](assets/css/notebook.css) | Gmarket Sans 원본·라이선스와 맨 위 `@font-face` |
 | 홈의 닥스훈트 그림 | [_includes/dachshund.svg](_includes/dachshund.svg) | SVG 모양과 색깔 |
 | 꼬리·하트 효과 | [assets/css/notebook.css](assets/css/notebook.css), [assets/js/dachshund.js](assets/js/dachshund.js) | `tail-wag`, `heart-float`, 클릭 반응 |
 | 닥스훈트 스크롤바 | [assets/js/dog-scrollbar.js](assets/js/dog-scrollbar.js) | 몸통 길이와 스크롤 동작 |

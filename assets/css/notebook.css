@@ -1,3 +1,27 @@
+@font-face {
+  font-family: "Gmarket Sans";
+  src: url("../fonts/gmarket/GmarketSansTTFLight.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gmarket Sans";
+  src: url("../fonts/gmarket/GmarketSansTTFMedium.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gmarket Sans";
+  src: url("../fonts/gmarket/GmarketSansTTFBold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
 :root {
   color-scheme: dark;
   --paper: #110c09;
@@ -7,7 +31,7 @@
   --accent: #b5762e;
   --accent-heading: #b5762e;
   --heading: var(--sans);
-  --sans: "Apple SD Gothic Neo", "Noto Sans CJK KR", "Malgun Gothic", sans-serif;
+  --sans: "Gmarket Sans", "Apple SD Gothic Neo", "Noto Sans CJK KR", "Malgun Gothic", sans-serif;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
@@ -211,3 +235,5 @@ main:focus { outline: none; }
   html.dog-scroll-enabled { scrollbar-width: none; }
   html.dog-scroll-enabled::-webkit-scrollbar { display: none; }
 }
+
+.tistory-import [style*="font-family:"] { font-family: var(--sans) !important; }
