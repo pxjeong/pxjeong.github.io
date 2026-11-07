@@ -42,7 +42,7 @@ main:focus { outline: none; }
 .dachshund > svg { display: block; width: 100%; height: auto; overflow: visible; }
 .dachshund:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; border-radius: 4px; }
 .dog-tail { transform-box: view-box; transform-origin: 54px 51px; }
-.dog-hearts { position: absolute; top: 8%; left: 65%; width: 30%; height: 30%; pointer-events: none; color: #e9a098; }
+.dog-hearts { position: absolute; top: 8%; left: 5%; width: 30%; height: 30%; pointer-events: none; color: #e9a098; }
 .dog-hearts > span { position: absolute; left: 20%; top: 0; font: 12px/1 var(--sans); opacity: 0; }
 .dog-hearts > span:nth-child(2) { left: 55%; font-size: 9px; animation-delay: .3s !important; }
 .dog-hearts > span:nth-child(3) { left: 0; font-size: 8px; animation-delay: .65s !important; }

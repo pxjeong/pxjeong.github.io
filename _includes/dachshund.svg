@@ -1,6 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="240" height="104" viewBox="0 0 240 104" aria-hidden="true" focusable="false">
+  <g transform="translate(240 0) scale(-1 1)">
   <path class="dog-tail" d="M54 51C38 47 28 35 24 22" fill="none" stroke="#303034" stroke-width="9" stroke-linecap="round"/>
-  <path d="M91 65v23h15V64m58-1v25h15V59" fill="#242427"/>
+  <path class="dog-far-legs" d="M98 64v21h11V64m47-3v24h11V59" fill="#242427"/>
+  <path class="dog-far-paws" d="M98 80h11v3h3a4 4 0 0 1 0 8h-10a4 4 0 0 1-4-4Zm58 0h11v3h-1a4 4 0 0 1 0 8h-6a4 4 0 0 1-4-4Z" fill="#95653e"/>
   <path d="M54 48c0-10 9-18 22-18h89c7 0 12-5 16-12 4-8 16-10 24-5 5 3 8 9 8 16l15 6c5 2 6 9 1 12l-23 8c-5 2-8 7-12 11-5 5-11 7-21 7H79c-17 0-25-10-25-25Z" fill="#303034"/>
   <path d="M75 60v30c0 3 2 5 5 5h13c3 0 5-2 5-5s-2-5-5-5h-4V61m83-3v32c0 3 2 5 5 5h13c3 0 5-2 5-5s-2-5-5-5h-4V56" fill="#303034"/>
   <path d="M75 81h14v4h4c3 0 5 2 5 5s-2 5-5 5H80c-3 0-5-2-5-5Zm97 0h14v4h4c3 0 5 2 5 5s-2 5-5 5h-13c-3 0-5-2-5-5Z" fill="#ad7443"/>
@@ -11,4 +13,5 @@
   <circle cx="208" cy="26" r="1.7" fill="#111114"/>
   <path d="m225 34 6 2c4 2 4 5 1 8l-6 1Z" fill="#111114"/>
   <path d="M204 48c4 1 8 0 11-2" fill="none" stroke="#714a2c" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
 </svg>
