@@ -1,0 +1,19 @@
+{% if include.posts.size > 0 %}
+<ol class="entry-list">
+  {% for post in include.posts %}
+  <li>
+    <article class="entry">
+      <div class="entry-meta"><time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: '%Y.%m.%d' }}</time>{% for category in post.categories %}<span>{{ category | escape }}</span>{% endfor %}</div>
+      <h3><a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a></h3>
+      <p>{{ post.description | default: post.excerpt | strip_html | truncate: 140 }}</p>
+    </article>
+  </li>
+  {% endfor %}
+</ol>
+{% else %}
+<div class="empty-notes">
+  <span class="empty-mark" aria-hidden="true">[ &nbsp; ]</span>
+  <h3>첫 기록 준비 중</h3>
+  <p>아직 공개한 글이 없습니다.<br>학습 내용과 활동 기록이 이곳에 쌓일 예정입니다.</p>
+</div>
+{% endif %}

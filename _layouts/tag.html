@@ -1,0 +1,7 @@
+---
+layout: default
+---
+<section class="document">
+  <header class="document-header"><p class="section-label">태그별 기록</p><h1>{{ page.title | escape }}</h1></header>
+  {% assign entries = site.tags[page.title] %}{% include entries.html posts=entries %}
+</section>

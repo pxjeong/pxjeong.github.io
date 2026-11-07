@@ -1,0 +1,9 @@
+---
+layout: default
+---
+<section class="document">
+  <header class="document-header"><p class="section-label">PX 학습 노트</p><h1>태그</h1></header>
+  {% assign tags = site.tags | sort %}
+  <ul class="tag-list">{% for tag in tags %}<li><a href="{{ tag[0] | slugify | prepend: '/tags/' | append: '/' | relative_url }}">{{ tag[0] | escape }} <span>{{ tag[1] | size }}</span></a></li>{% endfor %}</ul>
+  {% if tags.size == 0 %}<p>공개한 글의 태그가 이곳에 모일 예정입니다.</p>{% endif %}
+</section>

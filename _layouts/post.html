@@ -1,0 +1,10 @@
+---
+layout: default
+---
+<article class="document post-document">
+  <a class="back-link" href="{{ '/' | relative_url }}">← 전체 기록</a>
+  <header class="document-header"><div class="entry-meta"><time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: '%Y.%m.%d' }}</time>{% for category in page.categories %}<span>{{ category | escape }}</span>{% endfor %}</div><h1>{{ page.title | escape }}</h1>{% if page.description %}<p>{{ page.description | escape }}</p>{% endif %}</header>
+  <div class="prose">{{ content }}</div>
+  {% if page.tags.size > 0 %}<ul class="tag-list">{% for tag in page.tags %}<li><a href="{{ tag | slugify | prepend: '/tags/' | append: '/' | relative_url }}">#{{ tag | escape }}</a></li>{% endfor %}</ul>{% endif %}
+  <nav class="post-navigation" aria-label="다른 기록">{% if page.previous %}<a href="{{ page.previous.url | relative_url }}">← {{ page.previous.title | escape }}</a>{% endif %}{% if page.next %}<a href="{{ page.next.url | relative_url }}">{{ page.next.title | escape }} →</a>{% endif %}</nav>
+</article>

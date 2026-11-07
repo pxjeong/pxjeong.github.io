@@ -1,0 +1,8 @@
+<ol class="topic-index">
+  {% for topic in site.data.topics %}
+  {% assign topic_posts = site.categories[topic.name] %}
+  <li><a href="{{ '/topics/' | append: topic.slug | append: '/' | relative_url }}">
+    <span class="topic-number">0{{ forloop.index }}</span><span class="topic-name">{{ topic.name }}</span><span class="topic-count">{{ topic_posts | size }}</span><span class="topic-arrow" aria-hidden="true">↗</span>
+  </a></li>
+  {% endfor %}
+</ol>
