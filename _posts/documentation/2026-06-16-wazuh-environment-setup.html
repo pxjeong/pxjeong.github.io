@@ -1,0 +1,260 @@
+---
+layout: post
+title: "Wazuh 환경 구축 실습"
+date: 2026-06-16T16:04:01+09:00
+categories: ["블로그/기술문서"]
+---
+{% raw %}
+<div class="tistory-import"><p data-ke-size="size16">저번 주차땐 BAS에 관한 환경 구축을 진행 했었는데 이번 주차에서는 VMware 가상 환경에 우분투(Ubuntu)를 설치하고 그 위에 통합 보안 솔루션인 Wazuh(와주)를 구축하여 실시간으로 로그를 수집하는 과정을 다뤄볼것이다. 또한  Agent를 연결하여 실제 시스템 로그가 어떤 방식으로 수집 되고 분석되는지 그 흐름을 확인 해보는 시간을 가져볼것이다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">실습 명령어를 입력하기 전에 우리가 이번 시간에 사용할 프로그램과 용어들이 무엇을 뜻하는지를 먼저 정리 해보겠다.</p>
+<p data-ke-size="size16"> </p>
+<hr data-ke-style="style6" data-ke-type="horizontalRule"/>
+<h3 data-ke-size="size23" data-path-to-node="5">우분투(Ubuntu)란 무엇인가요?</h3>
+<p data-ke-size="size16" data-path-to-node="6">우리가 스마트폰에서 안드로이드나 iOS를 쓰고 PC에서 윈도우(Windows)를 쓰는 것처럼 컴퓨터를 움직이게 하는 기본 핵심 프로그램을 운영체제(OS)라고 한다. 우분투(Ubuntu)는 전 세계에서 가장 많이 쓰이는 무료 오픈소스 운영체제인<u> '리눅스(Linux)'의 한 종류입니다.</u> 일반적인 윈도우와 달리 터미널을 통해 텍스트 기반으로 조작하는 경우가 많아 서버 운영에 자주 쓰인다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="810" data-origin-width="758"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-01.png" data-url="/assets/img/posts/wazuh-environment-setup/image-01.png"><img alt="" data-origin-height="810" data-origin-width="758" decoding="async" height="205" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-01.png" width="192"/></span></figure>
+</p>
+<hr data-ke-style="style6" data-ke-type="horizontalRule"/>
+<h3 data-ke-size="size23" data-path-to-node="9">Wazuh(와주)란 무엇인가요?</h3>
+<p data-ke-size="size16" data-path-to-node="10">회사나 기관에는 수많은 컴퓨터와 서버가 존재한다. 이 컴퓨터들이 해킹을 당하고 있는지 이상한 명령어가 실행되고 있는지 한곳에 모아서 감시하고 분석해 주는 오픈소스 보안 플랫폼이다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="466" data-origin-width="574"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-02.png" data-url="/assets/img/posts/wazuh-environment-setup/image-02.png"><img alt="" data-origin-height="466" data-origin-width="574" decoding="async" height="272" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-02.png" width="335"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<h3 data-ke-size="size23" data-path-to-node="11">All-in-One(올인원) 방식인 이유는 무엇인가요?</h3>
+<p data-ke-size="size16" data-path-to-node="12">원래 큰 기업에서 Wazuh를 쓸 때는 분석하는 컴퓨터, 저장하는 컴퓨터, 화면을 보여주는 컴퓨터를 각각 따로 구비한다. 하지만 우리는 공부하는 단계이므로 이 모든 기능을 <b data-index-in-node="98" data-path-to-node="12">우분투 가상 컴퓨터 딱 한 대에 전부 모아서(All-in-One) 설치</b>하는 것이다.</p>
+<p data-ke-size="size16" data-path-to-node="12"> </p>
+<p data-ke-size="size16" data-path-to-node="12"> </p>
+<hr data-ke-style="style2" data-ke-type="horizontalRule"/>
+<p data-ke-size="size16" data-path-to-node="12"> </p>
+<h2 data-ke-size="size26" data-path-to-node="12" style="text-align: center;">실습</h2>
+<p data-ke-size="size16"> </p>
+<h2 data-ke-size="size26" data-path-to-node="6">가상 컴퓨터에 우분투(Ubuntu) 설치하기</h2>
+<p data-ke-size="size16" data-path-to-node="7">Wazuh 서버를 올릴 우분투 운영체제를 가상머신에 먼저 설치해야 한다. </p>
+<p data-ke-size="size16" data-path-to-node="7" style="color: #333333; text-align: start;">가상머신인 VMware의 설치 과정은 지난주차 블로그에 올려뒀으니 참고 하길 바란다.</p>
+<p data-ke-size="size16" data-path-to-node="7" style="color: #333333; text-align: start;"><a href="https://pxjeong.tistory.com/2">https://pxjeong.tistory.com/2</a></p>
+<figure data-ke-align="alignCenter" data-ke-type="opengraph" data-og-description="전 주차때 얘기 했던 BAS를 이번 주차때는 어떻게 환경 설정을 하나 또 어떻게 설계를 하는지에 대해서 Atomic Red Team을 이용한 BAS 환경 구축 및 ATT&amp;CK Technique 분석 실습을 진행해보겠다. https://pxjeong" data-og-host="pxjeong.tistory.com" data-og-image="/assets/img/posts/wazuh-environment-setup/image-28.png" data-og-source-url="https://pxjeong.tistory.com/2" data-og-title="Atomic Red Team을 이용한 BAS 환경 구축 및 ATT&amp;CK Technique 분석 실습" data-og-type="article" data-og-url="https://pxjeong.tistory.com/2" id="og_1780423768034"><a data-source-url="https://pxjeong.tistory.com/2" href="https://pxjeong.tistory.com/2" rel="noopener" target="_blank">
+<div class="og-image" style="background-image: url('/assets/img/posts/wazuh-environment-setup/image-28.png');"> </div>
+<div class="og-text">
+<p class="og-title" data-ke-size="size16">Atomic Red Team을 이용한 BAS 환경 구축 및 ATT&amp;CK Technique 분석 실습</p>
+<p class="og-desc" data-ke-size="size16">전 주차때 얘기 했던 BAS를 이번 주차때는 어떻게 환경 설정을 하나 또 어떻게 설계를 하는지에 대해서 Atomic Red Team을 이용한 BAS 환경 구축 및 ATT&amp;CK Technique 분석 실습을 진행해보겠다. https://pxjeong</p>
+<p class="og-host" data-ke-size="size16">pxjeong.tistory.com</p>
+</div>
+</a></figure>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16" data-path-to-node="7"><a href="https://releases.ubuntu.com/24.04/" rel="noopener noreferrer" target="_blank">https://releases.ubuntu.com/24.04/</a></p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="1128" data-origin-width="1052"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-03.png" data-url="/assets/img/posts/wazuh-environment-setup/image-03.png"><img alt="" data-origin-height="1128" data-origin-width="1052" decoding="async" height="1128" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-03.png" width="427"/></span></figure>
+</p>
+<p data-ke-size="size16" data-path-to-node="7">(우분투는 현재 최신버전인 26.04 버전이 있지만 필자는 24.04 버전을 쓰기에 따라하는것을 권장한다)</p>
+<p data-ke-size="size16" data-path-to-node="7">빨간색 네모를 클릭하여 설치를 해준다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16" data-path-to-node="7">우분투를 설치 해줬으면 VMware로 넘어와서 Create a New Virtual Machine을 눌러준다,.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="824" data-origin-width="850"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-04.png" data-url="/assets/img/posts/wazuh-environment-setup/image-04.png"><img alt="" data-origin-height="824" data-origin-width="850" decoding="async" height="426" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-04.png" width="439"/></span></figure>
+</p>
+<p data-ke-size="size16">그리고 Ty</p>
+<p data-ke-size="size16">pical을 선택하고 Next를 누른다.</p>
+<p data-ke-size="size16"> </p>
+<p><figure class="imageblock alignLeft" data-filename="blob" data-ke-mobilestyle="widthOrigin" data-origin-height="813" data-origin-width="839"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-05.png" data-url="/assets/img/posts/wazuh-environment-setup/image-05.png"><img alt="" data-filename="blob" data-origin-height="813" data-origin-width="839" decoding="async" height="421" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-05.png" width="434"/></span></figure>
+</p>
+<p data-ke-size="size16">Installer disc image file을 선택하고 브라우저에서 아까 다운 받았던 우분투.iso를 찾아서 선택 해주고 [Nezt]를 눌러준다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16" data-path-to-node="12,2,0">사용자 정보를 입력하는 창이 나옵니다.</p>
+<ul data-ke-list-type="disc" data-path-to-node="12,2,1" style="list-style-type: disc;">
+<li>Full name: 본인 이름 (영문)</li>
+<li>User name: 로그인할 아이디 (소문자 영어로 짓습니다. 예: user)</li>
+<li>Password: 로그인할 비밀번호 (기억하기 쉬운 것으로 두 번 입력)</li>
+</ul>
+<p data-ke-size="size16"> </p>
+<p><figure class="imageblock alignLeft" data-filename="blob" data-ke-mobilestyle="widthOrigin" data-origin-height="830" data-origin-width="860"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-06.png" data-url="/assets/img/posts/wazuh-environment-setup/image-06.png"><img alt="" data-filename="blob" data-origin-height="830" data-origin-width="860" decoding="async" height="421" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-06.png" width="436"/></span></figure>
+</p>
+<p data-ke-size="size16">가상머신 이름과 저장 위치를 지정하는 창이 나옵니다. 이름은 "Wazuh-Server" 정도로 짓고 [Next]를 누른다</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="822" data-origin-width="838"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-07.png" data-url="/assets/img/posts/wazuh-environment-setup/image-07.png"><img alt="" data-origin-height="822" data-origin-width="838" decoding="async" height="434" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-07.png" width="442"/></span></figure>
+</p>
+<p data-ke-size="size16"> 기본 20GB로 되어 있을 텐데, Wazuh가 용량을 꽤 차지하므로 <b data-index-in-node="49" data-path-to-node="12,4,0">40GB</b>로 넉넉하게 적어주고 [Next]를 누른다</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p><figure class="imageblock alignLeft" data-filename="blob" data-ke-mobilestyle="widthOrigin" data-origin-height="812" data-origin-width="838"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-08.png" data-url="/assets/img/posts/wazuh-environment-setup/image-08.png"><img alt="" data-filename="blob" data-origin-height="812" data-origin-width="838" decoding="async" height="428" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-08.png" width="442"/></span></figure>
+</p>
+<p data-ke-size="size16" data-path-to-node="12,5,0">마지막 요약 화면에서 Customize Hardware 버튼을 누릅니다.</p>
+<ul data-ke-list-type="disc" data-path-to-node="12,5,1" style="list-style-type: disc;">
+<li><b data-index-in-node="0" data-path-to-node="12,5,1,0,0">Memory (RAM):</b> 가상머신이 버벅거리지 않도록 최소 <b data-index-in-node="33" data-path-to-node="12,5,1,0,0">4096MB(4GB)</b> 이상으로 바를 올려준다</li>
+<li><b>Processor 설정:</b><span> </span>Processor 2, Core 2로 권장 드린다.</li>
+<li><b data-index-in-node="0" data-path-to-node="12,5,1,1,0">Network Adapter:</b> 기본값인 NAT로 둡니다. (원래 윈도우 PC의 인터넷을 빌려 쓰는 방식이다)</li>
+<li>[Close]를 누르고 [Finish]를 눌러 마무리한다.</li>
+</ul>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이 이후부턴 필자는 이미 깔아놨기에 글로만 설명할것이다.</p>
+<p data-ke-size="size16">막힌 부분이 있다면 댓글로 달아주면 어떻게 해야하는지 알려주겠다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16" data-path-to-node="15">[Finish]를 누르면 가상머신이 켜지면서 우분투 설치 화면이 나타난다.</p>
+<p data-ke-size="size16">까만 화면에 흰 글씨가 나오다가 우분투 로고가 뜰 것인데 VMware가 자동으로 설치를 진행해 주므로 마우스를 클릭할 필요 없이 화면이 켜질 때까지 쭉 기다린다. (사양에 따라 다른데 오래 걸릴 수 있다.)</p>
+<p data-ke-size="size16">언어 선택은 한국어가 없기에 자신이 잘 이해 할 수 있는 언어로 해준다. 필자는 English로 쓸 예정이다</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">그리고 Done을 거의다 골라주고 Skip 할 수 있는건 다 해준다.</p>
+<p data-ke-size="size16">그리고 Storage에서 Use an entire disk를 고르고 Done을 선택 해준다. </p>
+<p data-ke-size="size16">하다 보면 Profile Setup이 나올텐데 잘 입력해주고 Done을 입력 해준다.</p>
+<p data-ke-size="size16">SSH 설정하는 부분도 Install OpeneSSH server을 선택하고 Done을 선택해준다.</p>
+<p data-ke-size="size16">이제 우분투가 설치 될텐데 10~20분정도 걸릴테니 기다려준다. 그리고 설치가 완료 되면 Reboot Now를 선택해준다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<h2 data-ke-size="size26" data-path-to-node="18">터미널 열고 가상머신 IP 확인하기</h2>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">모든 설정을 마친 뒤 입력한 계정으로 로그인한다</p>
+<p data-ke-size="size16">로그인 이후 Ubuntu 버전을 확인하는 명령어인</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1780548926673"><code>lsb_release -a</code></pre>
+<p data-ke-size="size16">를 써준다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="128" data-origin-width="338"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-09.png" data-url="/assets/img/posts/wazuh-environment-setup/image-09.png"><img alt="" data-origin-height="128" data-origin-width="338" decoding="async" height="128" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-09.png" width="338"/></span></figure>
+</p>
+<p data-ke-size="size16">24.04.4 LTS 버전이 나오면 정상적으로 우분투가 깔린것이다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">그리고</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1780549073374"><code>sudo apt update
+sudo apt upgrade -y</code></pre>
+<p data-ke-size="size16">차례대로 시스템 업데이트 명령어들을 입력해주고 기다려준다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">업데이트를 다 했다면 재부팅을 해준다.</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1780549214936"><code>sudo reboot</code></pre>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">우분투 서버 IP를 확인 하는 명령어인</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1780549286093"><code>hostname -I</code></pre>
+<p data-ke-size="size16">를 입력하면 </p>
+<p data-ke-size="size16"> </p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="30" data-origin-width="382"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-10.png" data-url="/assets/img/posts/wazuh-environment-setup/image-10.png"><img alt="" data-origin-height="30" data-origin-width="382" decoding="async" height="32" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-10.png" width="407"/></span></figure>
+</p>
+<p data-ke-size="size16">이렇게 IP가 나올텐데 메모장이나 노트에 메모를 해두자 이따 할 Dashboard 접속에 사용한다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이제 오늘의 핵심인 Wazuh를 설치 할것이다.</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1780549465513"><code>//curl 설치
+sudo apt install curl -y
+//설치 스크립트 다운로드
+curl -sO https://packages.wazuh.com/4.14/wazuh-install.sh
+//권한 부여
+chmod +x wazuh-install.sh</code></pre>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이렇게 설치를 다 마췄다면 Wazuh All-in-One을 설치를 해준다.</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1780549671442"><code>sudo bash wazuh-install.sh -a</code></pre>
+<p data-ke-size="size16">이렇게 하면 설치를 시작한다. 설치가 오래 걸리니 멈춘 것 처럼 보여도 기다려준다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이제 모두 설치가 끝났다면 <b><u>아이디와 비밀번호</u></b>가 나올텐데 메모를 해준다.</p>
+<p data-ke-size="size16">이제 서비스들의 상태를 확인 해줄것이다.</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1780550644322"><code>sudo systemctl status wazuh-manager
+sudo systemctl status wazuh-indexer
+sudo systemctl status filebeat
+sudo systemctl status wazuh-dashboard</code></pre>
+<p data-ke-size="size16">하나씩 입력 해주면 하나만 확인 해주면 되는데 </p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="18" data-origin-width="606"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-11.png" data-url="/assets/img/posts/wazuh-environment-setup/image-11.png"><img alt="" data-origin-height="18" data-origin-width="606" decoding="async" height="18" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-11.png" width="606"/></span></figure>
+</p>
+<p data-ke-size="size16">이렇게 Active : active (running) 상태만 다 확인 해주면 된다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">차례대로 역할은</p>
+<p data-ke-size="size16"><b>wazuh-manager</b> : Agent 이벤트 수집 및 룰 기반 분석을 담당한다.</p>
+<p data-ke-size="size16"><b>wazuh-indexer</b> : Alert 및 이벤트 데이터를 저장한다.</p>
+<p data-ke-size="size16"><b>filebeat</b> : Wazuh Manager의 Alert 데이터를 Indexer로 전달한다.</p>
+<p data-ke-size="size16"><b>wazuh-dashboard</b> : 웹 기반 Dashboard 접속을 제공한다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<h2 data-ke-size="size26">포트 확인</h2>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1780833229640"><code>sudo ss -tulnp</code></pre>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="258" data-origin-width="1256"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-12.png" data-url="/assets/img/posts/wazuh-environment-setup/image-12.png"><img alt="" data-origin-height="258" data-origin-width="1256" decoding="async" height="170" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-12.png" width="826"/></span></figure>
+</p>
+<p data-ke-size="size16"><b data-index-in-node="5" data-path-to-node="9">포트 확인</b>은 데이터가 통신할 길이 제대로 뚫려 있는가? 를 확인하는 작업입니다.</p>
+<p data-ke-size="size16">모든 프로그램이 설치 되어 있어도 특정 포트들이 닫혀 있으면 데이터가 넘어가지 않기에 잘 확인 해줘야 한다.</p>
+<p data-ke-size="size16" data-path-to-node="10,1,0">각 포트는 정해진 역할이 있습니다.</p>
+<ul data-ke-list-type="disc" data-path-to-node="10,1,1" style="list-style-type: disc;">
+<li><b data-index-in-node="0" data-path-to-node="10,1,1,0,0">443/TCP:</b> Dashboard 접속 (내가 데이터를 보는 문)</li>
+<li><b data-index-in-node="0" data-path-to-node="10,1,1,1,0">1514/TCP:</b> Agent에서 Manager로 로그 전달 (데이터 유입 통로)</li>
+<li><b data-index-in-node="0" data-path-to-node="10,1,1,2,0">1515/TCP:</b> Agent 인증 (등록하는 열쇠)</li>
+<li><b data-index-in-node="0" data-path-to-node="10,1,1,3,0">55000/TCP:</b> API 통신 (시스템 간 대화 창구)</li>
+<li><b data-index-in-node="0" data-path-to-node="10,1,1,4,0">9200/TCP:</b> Indexer 통신 (저장소로 가는 입구)</li>
+</ul>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<h2 data-ke-size="size26">Dashboard 접속 확인</h2>
+<p data-ke-size="size16">이제 아까 ip addr 명령어를 통해서 받은 ip 주소를 활용을 할것이다.</p>
+<p data-ke-size="size16">아무 브라우저로 들어가서 https://(ip주소)를 입력하면 본인의 Wazuh Dashboard에 접속 할 수 있게 된다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="1618" data-origin-width="2872"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-13.png" data-url="/assets/img/posts/wazuh-environment-setup/image-13.png"><img alt="" data-origin-height="1618" data-origin-width="2872" decoding="async" height="1618" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-13.png" width="657"/></span></figure>
+</p>
+<p data-ke-size="size16">.이렇게 Wazuh 보안 화면이 나오게 된다.</p>
+<p data-ke-size="size16">사용자 이름은 admin으로 치고</p>
+<p data-ke-size="size16">비밀번호는 설치 완료 할 때 출력된 비밀번호로 입력 하면 된다.</p>
+<p><figure class="imageblock alignLeft" data-filename="Wazuhmain.png" data-ke-mobilestyle="widthOrigin" data-origin-height="1528" data-origin-width="2880"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-14.png" data-url="/assets/img/posts/wazuh-environment-setup/image-14.png"><img alt="" data-filename="Wazuhmain.png" data-origin-height="1528" data-origin-width="2880" decoding="async" height="348" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-14.png" width="655"/></span></figure>
+</p>
+<p data-ke-size="size16">그러면 이렇게 Wazuh 메인 화면으로 들어올 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">사진에 보이는 파란색 버튼인 Deploy New Agent를 눌러서 Windows Agent를 설치 해준다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="826" data-origin-width="2796"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-15.png" data-url="/assets/img/posts/wazuh-environment-setup/image-15.png"><img alt="" data-origin-height="826" data-origin-width="2796" decoding="async" height="213" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-15.png" width="721"/></span></figure>
+</p>
+<p data-ke-size="size16">여기서 Windows를 골라준다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="858" data-origin-width="1666"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-16.png" data-url="/assets/img/posts/wazuh-environment-setup/image-16.png"><img alt="" data-origin-height="858" data-origin-width="1666" decoding="async" height="372" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-16.png" width="722"/></span></figure>
+</p>
+<p data-ke-size="size16">각각 설정을 다 한 후 빨간 네모 부분을 클릭하여 복사 해준다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">그리고 Agent를 등록을 해주면</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="986" data-origin-width="2844"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-17.png" data-url="/assets/img/posts/wazuh-environment-setup/image-17.png"><img alt="" data-origin-height="986" data-origin-width="2844" decoding="async" height="251" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-17.png" width="725"/></span></figure>
+</p>
+<p data-ke-size="size16">이렇게 홈 화면으로 다시 돌아오면 windows가 Active 상태인걸 확인 할 수 있다.</p>
+<p data-ke-size="size16">이제 현재 자기 자신 PC의 터미널(관리자권한)이나 PowerShell(관지라권한)에 그대로 복사한걸 붙여주고 실행 시켜주면 된다.</p>
+<p data-ke-size="size16">그리고</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1781589961669"><code>NET START WazuhSvc</code></pre>
+<p data-ke-size="size16">라는 명령어를 터미널이나 PowerShell에서 실행시켜주면 연결이 된다.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="184" data-origin-width="1050"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-18.png" data-url="/assets/img/posts/wazuh-environment-setup/image-18.png"><img alt="" data-origin-height="184" data-origin-width="1050" decoding="async" height="124" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-18.png" width="706"/></span></figure>
+</p>
+<p data-ke-size="size16">필자는 이미 서비스를 시작을 해놨기에 이렇게 뜨는것을 확인 할 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이제 대상 컴퓨터에서 일어나는 일들이 서버로 잘 넘어오는지 테스트를 해볼거다.</p>
+<p data-ke-size="size16">아래의 명령어들을 차례대로 입력 해보자</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1781590148603"><code>whoami
+hostname
+ipconfig
+net user</code></pre>
+<p data-ke-size="size16"> </p>
+<p><figure class="imageblock alignLeft" data-filename="blob" data-ke-mobilestyle="widthOrigin" data-origin-height="106" data-origin-width="580"><span data-alt="whoami" data-phocus="/assets/img/posts/wazuh-environment-setup/image-19.png" data-url="/assets/img/posts/wazuh-environment-setup/image-19.png"><img alt="whoami" data-filename="blob" data-origin-height="106" data-origin-width="580" decoding="async" height="93" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-19.png" width="508"/></span><figcaption>whoami</figcaption>
+</figure>
+<figure class="imageblock alignLeft" data-filename="blob" data-ke-mobilestyle="widthOrigin" data-origin-height="108" data-origin-width="802"><span data-alt="hostname" data-phocus="/assets/img/posts/wazuh-environment-setup/image-20.png" data-url="/assets/img/posts/wazuh-environment-setup/image-20.png"><img alt="hostname" data-filename="blob" data-origin-height="108" data-origin-width="802" decoding="async" height="69" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-20.png" width="514"/></span><figcaption>hostname</figcaption>
+</figure>
+<figure class="imageblock alignLeft" data-filename="blob" data-ke-mobilestyle="widthOrigin" data-origin-height="764" data-origin-width="1040"><span data-alt="ipconfig" data-phocus="/assets/img/posts/wazuh-environment-setup/image-21.png" data-url="/assets/img/posts/wazuh-environment-setup/image-21.png"><img alt="ipconfig" data-filename="blob" data-origin-height="764" data-origin-width="1040" decoding="async" height="379" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-21.png" width="516"/></span><figcaption>ipconfig</figcaption>
+</figure>
+<figure class="imageblock alignLeft" data-filename="blob" data-ke-mobilestyle="widthOrigin" data-origin-height="326" data-origin-width="1310"><span data-alt="net user" data-phocus="/assets/img/posts/wazuh-environment-setup/image-22.png" data-url="/assets/img/posts/wazuh-environment-setup/image-22.png"><img alt="net user" data-filename="blob" data-origin-height="326" data-origin-width="1310" decoding="async" height="148" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-22.png" width="595"/></span><figcaption>net user</figcaption>
+</figure>
+</p>
+<p data-ke-size="size16">이렇게 명령어들을 실행 시키면 Wazuh dashboard에 로그가 찍히게 된다.</p>
+<p><figure class="imageblock alignLeft" data-filename="blob" data-ke-mobilestyle="widthOrigin" data-origin-height="1534" data-origin-width="2880"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-23.png" data-url="/assets/img/posts/wazuh-environment-setup/image-23.png"><img alt="" data-filename="blob" data-origin-height="1534" data-origin-width="2880" decoding="async" height="1534" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-23.png" width="653"/></span></figure>
+</p>
+<p data-ke-size="size16">Wazuh에 왼쪽 상단에 3개의 바를 눌러 Discover를 누른다. </p>
+<p><figure class="imageblock alignLeft" data-filename="blob" data-ke-mobilestyle="widthOrigin" data-origin-height="1442" data-origin-width="2880"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-24.png" data-url="/assets/img/posts/wazuh-environment-setup/image-24.png"><img alt="" data-filename="blob" data-origin-height="1442" data-origin-width="2880" decoding="async" height="329" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-24.png" width="658"/></span></figure>
+</p>
+<p data-ke-size="size16">그럼 이렇게 시간대별, 혹은 검색을 통해서 로그들을 확인 할 수 있다. 여기서 검색한 명령어들의 로그들을 볼 수 있다. 하지만 필자는 Wazuh가 정상적인 시스템 조회 명령어(whoami 등)는 위험도가 낮아 대시보드에 기록되지 않기에 실제 해커들이 시스템 장악 후 수행하는 <b data-index-in-node="89" data-path-to-node="13">'무단 계정 생성'</b> 시나리오를 가상으로 유발하여 로그 수집을 검증해보겠다.</p>
+<p data-ke-size="size16"> </p>
+<ul data-ke-list-type="disc" style="list-style-type: disc;">
+<li><b data-index-in-node="0" data-path-to-node="14,0,0">테스트 환경:</b> Windows 11 Host (Pxjeong_Windows, IP: 192.168.10.1)</li>
+<li><b data-index-in-node="0" data-path-to-node="14,1,0">실행 명령어 (관리자 권한 CMD)</b><b data-index-in-node="0" data-path-to-node="14,1,0"></b></li>
+</ul>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1781592798099"><code>net user hacker_test [비밀번호 가림] /add</code></pre>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이렇게 CMD에다 테스트겸 계정을 생성하고 로그를 확인해보자.</p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="116" data-origin-width="1078"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-25.png" data-url="/assets/img/posts/wazuh-environment-setup/image-25.png"><img alt="" data-origin-height="116" data-origin-width="1078" decoding="async" height="75" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-25.png" width="694"/></span></figure>
+<figure class="imageblock alignLeft" data-filename="blob" data-ke-mobilestyle="widthOrigin" data-origin-height="266" data-origin-width="2208"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-26.png" data-url="/assets/img/posts/wazuh-environment-setup/image-26.png"><img alt="" data-filename="blob" data-origin-height="266" data-origin-width="2208" decoding="async" height="266" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-26.png" width="2208"/></span></figure>
+</p>
+<p data-ke-size="size16">이렇게 생성된걸 확인 할 수 있고</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1781593249839"><code>net user hacker_test /delete</code></pre>
+<p data-ke-size="size16">다시 계정을 지워보고 로그를 확인해보면 </p>
+<p><figure class="imageblock alignCenter" data-filename="blob" data-ke-mobilestyle="widthOrigin" data-origin-height="260" data-origin-width="2208"><span data-phocus="/assets/img/posts/wazuh-environment-setup/image-27.png" data-url="/assets/img/posts/wazuh-environment-setup/image-27.png"><img alt="" data-filename="blob" data-origin-height="260" data-origin-width="2208" decoding="async" height="260" loading="lazy" src="/assets/img/posts/wazuh-environment-setup/image-27.png" width="2208"/></span></figure>
+</p>
+<p data-ke-size="size16">계정이 지워진 로그를 확인 할 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p></div>
+{% endraw %}
