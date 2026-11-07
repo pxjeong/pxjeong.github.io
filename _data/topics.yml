@@ -1,3 +1,6 @@
+# 홈의 「주제별 목차」 순서·이름·설명입니다. 위에서부터 화면에 표시됩니다.
+# slug는 topics/<slug>.md 및 _posts/<slug>/와 대응합니다.
+# name 변경 시 해당 주제 페이지 title과 기존 글 categories도 함께 맞춰 주세요.
 - name: 개발
   slug: development
   description: 코드와 구현 과정의 기록

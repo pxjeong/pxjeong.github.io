@@ -1,4 +1,5 @@
 ---
+# 상단 메뉴 「소개」의 본문입니다. 아래 Markdown 내용을 수정하세요.
 # the default layout is 'page'
 title: 소개
 icon: fas fa-info-circle
