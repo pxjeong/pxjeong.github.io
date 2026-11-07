@@ -190,3 +190,23 @@ main:focus { outline: none; }
   .prose pre { padding: 16px; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* A small dachshund follows reading progress; native scrolling remains the fallback. */
+.dog-scrollbar[hidden] { display: none; }
+.dog-scrollbar { position: fixed; z-index: 20; top: 14px; bottom: 14px; right: 3px; width: 26px; touch-action: none; cursor: pointer; user-select: none; }
+.dog-scrollbar::before { content: ""; position: absolute; left: 12px; top: 0; bottom: 0; width: 1px; background: var(--line); opacity: .45; }
+.dog-scrollbar:focus-visible { outline: 1px solid var(--accent); outline-offset: 0; border-radius: 12px; }
+.scroll-dog { display: block; position: absolute; top: 0; left: 3px; width: 20px; height: 54px; cursor: grab; }
+.dog-scrollbar:active .scroll-dog { cursor: grabbing; }
+.scroll-dog-body { position: absolute; top: 10px; bottom: 2px; left: 5px; width: 10px; background: #353338; border-radius: 6px; }
+.scroll-dog-head { position: absolute; left: 3px; top: 0; width: 14px; height: 17px; border-radius: 50%; background: #353338; }
+.scroll-dog-head::before, .scroll-dog-head::after { content: ""; position: absolute; width: 4px; height: 11px; top: 3px; background: #18171b; border-radius: 3px; }
+.scroll-dog-head::before { left: -2px; transform: rotate(10deg); }
+.scroll-dog-head::after { right: -2px; transform: rotate(-10deg); }
+.scroll-dog-head > span { position: absolute; width: 6px; height: 6px; left: 4px; top: 8px; border-radius: 50%; background: #ad7443; }
+.scroll-dog-head > span::after { content: ""; position: absolute; width: 3px; height: 2px; left: 1.5px; top: 0; border-radius: 50%; background: #111114; }
+.scroll-dog-paws { position: absolute; left: 2px; right: 2px; top: 21px; bottom: 7px; border-left: 3px solid #ad7443; border-right: 3px solid #ad7443; mask-image: linear-gradient(#000 0 4px, transparent 4px calc(100% - 4px), #000 calc(100% - 4px)); }
+@media (min-width: 900px) and (pointer: fine) {
+  html.dog-scroll-enabled { scrollbar-width: none; }
+  html.dog-scroll-enabled::-webkit-scrollbar { display: none; }
+}
