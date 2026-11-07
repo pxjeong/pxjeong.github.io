@@ -1,24 +1,72 @@
 @font-face {
-  font-family: "Gmarket Sans";
-  src: url("../fonts/gmarket/GmarketSansTTFLight.ttf") format("truetype");
+  font-family: "SUIT";
+  src: url("../fonts/suit/SUIT-Thin.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SUIT";
+  src: url("../fonts/suit/SUIT-ExtraLight.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SUIT";
+  src: url("../fonts/suit/SUIT-Light.ttf") format("truetype");
   font-style: normal;
   font-weight: 300;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Gmarket Sans";
-  src: url("../fonts/gmarket/GmarketSansTTFMedium.ttf") format("truetype");
+  font-family: "SUIT";
+  src: url("../fonts/suit/SUIT-Regular.ttf") format("truetype");
   font-style: normal;
   font-weight: 400;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Gmarket Sans";
-  src: url("../fonts/gmarket/GmarketSansTTFBold.ttf") format("truetype");
+  font-family: "SUIT";
+  src: url("../fonts/suit/SUIT-Medium.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SUIT";
+  src: url("../fonts/suit/SUIT-SemiBold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SUIT";
+  src: url("../fonts/suit/SUIT-Bold.ttf") format("truetype");
   font-style: normal;
   font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SUIT";
+  src: url("../fonts/suit/SUIT-ExtraBold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SUIT";
+  src: url("../fonts/suit/SUIT-Heavy.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 900;
   font-display: swap;
 }
 
@@ -31,7 +79,7 @@
   --accent: #b5762e;
   --accent-heading: #b5762e;
   --heading: var(--sans);
-  --sans: "Gmarket Sans", "Apple SD Gothic Neo", "Noto Sans CJK KR", "Malgun Gothic", sans-serif;
+  --sans: "SUIT", "Apple SD Gothic Neo", "Noto Sans CJK KR", "Malgun Gothic", sans-serif;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
