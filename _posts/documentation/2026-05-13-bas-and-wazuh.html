@@ -1,0 +1,348 @@
+---
+layout: post
+title: "BAS와 Wazuh의 상호관계"
+date: 2026-05-13T04:56:50+09:00
+categories: ["블로그/기술문서"]
+---
+{% raw %}
+<div class="tistory-import"><p data-ke-size="size16" style="text-align: left;"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR'; color: #9d9d9d;"><b>작성자 : 박세정                                      2026_0512 week 1 프로젝트</b></span></p>
+<hr data-ke-style="style5" data-ke-type="horizontalRule"/>
+<p data-ke-size="size16"> </p>
+<h3 data-ke-size="size23"><span><b>BAS란? </b></span></h3>
+<blockquote data-ke-style="style1"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">침해 및 공격 시뮬레이션(Breach and Attack Simulation)의 뜻으로 실제 환경에서 <span style="background-color: #f6e199;">공격을 시뮬레이션</span>을 함으로써 조직의 보안 상태를 사전 예방적으로 평가하는 역할을 합니다. </span></blockquote>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size18"> </p>
+<p data-ke-size="size16" style="text-align: justify;"><span style="background-color: #ffffff; color: #5a5c76; text-align: start; font-family: 'Noto Sans Demilight', 'Noto Sans KR';">BAS(침해 및 공격 시뮬레이션)는 조직의 방어 체계 평가를 위해 다양한 사이버 공격을 시뮬레이션하는 과정을 <u>자동화</u>하는 사이버 보안 테스트 접근법입니다.</span></p>
+<p data-ke-size="size16"><span style="color: #5a5c76;"><span style="background-color: #ffffff;">BAS의 장점은 <span style="background-color: #ffffff; color: #5a5c76; text-align: start;"><span style="background-color: #f6e199;">기존의 취약점 평가 및 스캔이 단발성인 반면에 BAS는 </span><span style="background-color: #ffffff; color: #5a5c76; text-align: start;"><span style="background-color: #f6e199;">지속적인 가시성을 제공</span>함으로 <span style="background-color: #ffffff; color: #5a5c76; text-align: start;">보안 팀이 취약점이 발생하자마자 신속하게 대응이 가능합니다.</span></span></span></span></span></p>
+<p data-ke-size="size18" style="text-align: justify;"> </p>
+<hr data-ke-style="style2" data-ke-type="horizontalRule"/>
+<h2 data-ke-size="size26" style="color: #000000; text-align: start;"><b>BAS가 왜 필요할까?</b></h2>
+<p data-ke-size="size16"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR'; color: #000000;">진화하는 다양한 공격들<span style="background-color: #ffffff; text-align: start;">에 대비해 기업이 필요로 하는 평가 및 사전 보호의 핵심 요소입니다. BAS는 다양한 공격에 대비한 준비 태세를 보장하는 보안 취약점에 대한 지속적인 통찰력을 제공합니다.</span> </span></p>
+<p data-ke-size="size16"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR'; color: #000000;">또한 BAS는 다음과 같은 도움을 줍니다.</span></p>
+<ul data-ke-list-type="disc" style="list-style-type: disc; background-color: #ffffff; color: #161616; text-align: start;">
+<li style="color: #161616;"><b>잠재적 사이버 위험 완화:<span> </span></b>발생 가능한 내부 또는 외부 위협을 조기에 경고해서 보안 팀이 심각한 데이터 유출, 접근 권한 상실, 이와 유사한 부작용이 있기 전에 문제 해결 활동의 우선 순위를 정할 수 있게 합니다.</li>
+<li style="color: #161616;"><b>사이버 공격 성공 가능성 최소화:</b><span> </span>끊임없이 변화하는<span> 위협 환경</span>에서 자동화를 하면 지속적인 테스트를 통해 복원력을 높일 수 있습니다.</li>
+</ul>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"><span style="background-color: #ffffff; color: #5a5c76; text-align: start;">BAS 도구가 시뮬레이션할 수 있는 주요 공격 유형은 다음과 같습니다.</span></p>
+<table border="1" data-ke-align="alignLeft" data-ke-style="style15" style="border-collapse: collapse; width: 100.93%; height: 262px;">
+<tbody>
+<tr style="height: 22px;">
+<td style="width: 6.97674%; height: 22px; text-align: center;"><b>공격 유형</b></td>
+<td style="width: 12.907%; height: 22px; text-align: center;"><b>시뮬레이션 내용</b></td>
+<td style="width: 11.0563%; height: 22px; text-align: center;"><b>점검 목적</b></td>
+</tr>
+<tr style="height: 44px;">
+<td style="width: 6.97674%; height: 44px; text-align: center;"><b>랜섬웨어 배포</b></td>
+<td style="width: 12.907%; height: 44px;">랜섬웨어 감염 상황을 재현하여 탐지·격리·복구 과정 테스트</td>
+<td style="width: 11.0563%; height: 44px;">직원 보안 인식 수준 확인 및 이메일 보안 취약점 파악</td>
+</tr>
+<tr style="height: 44px;">
+<td style="width: 6.97674%; height: 44px; text-align: center;"><b>측면 이동 전술</b></td>
+<td style="width: 12.907%; height: 44px;">공격자가 내부 네트워크에서 다른 시스템으로 확산되는 과정 모방</td>
+<td style="width: 11.0563%; height: 44px;">랜섬웨어 대응 능력 및 백업 안전성 점검</td>
+</tr>
+<tr style="height: 44px;">
+<td style="width: 6.97674%; height: 44px; text-align: center;"><b>데이터 유출 기법</b></td>
+<td style="width: 12.907%; height: 44px;">민감한 데이터를 외부로 빼내는 공격 상황 시뮬레이션</td>
+<td style="width: 11.0563%; height: 44px;">네트워크 분리 및 내부 보안 통제 효과 확인</td>
+</tr>
+<tr style="height: 43px;">
+<td style="width: 6.97674%; text-align: center; height: 43px;"><b> 피싱 공격 </b></td>
+<td style="width: 12.907%; height: 43px;">가짜 이메일·사이트 등을 이용해 직원이 피싱을 식별하는지 테스트</td>
+<td style="width: 11.0563%; height: 43px;">DLP(Data Loss Prevention) 및 암호화 보호 수준 점검</td>
+</tr>
+<tr style="height: 44px;">
+<td style="width: 6.97674%; height: 44px; text-align: center;"><b>중간자 공격</b></td>
+<td style="width: 12.907%; height: 44px;">통신 중 데이터를 가로채거나 변조하는 공격 재현</td>
+<td style="width: 11.0563%; height: 44px;">암호화 및 안전한 통신 프로토콜 적용 여부 확인</td>
+</tr>
+<tr style="height: 21px;">
+<td style="width: 6.97674%; height: 21px; text-align: center;"><b>SQL 인젝션 시도</b></td>
+<td style="width: 12.907%; height: 21px;">웹 애플리케이션에 악성 SQL 구문 삽입 시도</td>
+<td style="width: 11.0563%; height: 21px;">웹·DB 보안 취약점 및 입력 검증 문제 탐지</td>
+</tr>
+</tbody>
+</table>
+<p data-ke-size="size16"> </p>
+<hr data-ke-style="style5" data-ke-type="horizontalRule"/>
+<h4 data-ke-size="size20" style="color: #000000; text-align: start;"><b>BAS 시뮬레이션은 어떤 과정으로 돌아갈까?</b></h4>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">1단계 - <b>공격 대상 지정</b></p>
+<details data-ke-type="moreLess" data-text-less="닫기" data-text-more="더보기"><summary class="btn-toggle-moreless">더보기</summary>
+<div class="moreless-content">
+<p data-ke-size="size16">예시:</p>
+<ul data-ke-list-type="disc" style="list-style-type: disc;">
+<li>Ubuntu 서버</li>
+<li>Windows PC</li>
+<li>웹 서버</li>
+<li>사내 PC</li>
+</ul>
+</div>
+</details>
+<p data-ke-size="size16">2단계 - <b>공격 시나리오 선택</b></p>
+<details data-ke-type="moreLess" data-text-less="닫기" data-text-more="더보기"><summary class="btn-toggle-moreless">더보기</summary>
+<div class="moreless-content">
+<p data-ke-size="size16">예시:</p>
+<ul data-ke-list-type="disc" style="list-style-type: disc;">
+<li>피싱 메일 공격</li>
+<li>brute force 공격</li>
+<li>랜섬웨어 동작</li>
+<li>권한 상승 공격</li>
+<li>파일 탈취 공격</li>
+</ul>
+</div>
+</details>
+<p data-ke-size="size16">3단계 - <b>공격 실행</b></p>
+<details data-ke-type="moreLess" data-text-less="닫기" data-text-more="더보기"><summary class="btn-toggle-moreless">더보기</summary>
+<div class="moreless-content">
+<p data-ke-size="size16" style="color: #333333; text-align: start;">그 다음 BAS가 자동으로 공격 행동을 수행한다.</p>
+<p data-ke-size="size16" style="color: #333333; text-align: start;">예를 들어 brute force 공격이면 비밀번호를 자동 시도를 한다.</p>
+<p data-ke-size="size16" style="color: #333333; text-align: start;">그러면 대상 서버에서는</p>
+<ul data-ke-list-type="disc" style="list-style-type: disc;">
+<li>로그인 실패 로그 발생</li>
+<li>SSH 이벤트 발생</li>
+<li>auth.log 기록 생성</li>
+</ul>
+</div>
+</details>
+<p data-ke-size="size16">4단계 - <b>보안 대응 분석</b></p>
+<details data-ke-type="moreLess" data-text-less="닫기" data-text-more="더보기"><summary class="btn-toggle-moreless">더보기</summary>
+<div class="moreless-content">
+<p data-ke-size="size16"><span style="background-color: #ffffff; color: #5a5c76; text-align: start;">시뮬레이션 환경에서 실행되는 BAS 도구는 탐지 속도, 방어 메커니즘의 견고성, 공격 경로로 활용될 수 있는 취약점 등 보안 통제가 이러한 사건에 어떻게 반응하는지 기록합니다. 시뮬레이션 중 대응을 모니터링함으로써 실시간 대비 태세를 확보하기 위해 개선이 필요한 영역을 식별할 수 있습니다.</span></p>
+</div>
+</details>
+<p data-ke-size="size16">5단계 - <b>개선</b></p>
+<details data-ke-type="moreLess" data-text-less="닫기" data-text-more="더보기"><summary class="btn-toggle-moreless">더보기</summary>
+<div class="moreless-content">
+<p data-ke-size="size16"><span style="background-color: #ffffff; color: #5a5c76; text-align: start;">마지막 단계에서는 보안 개선을 위해 생성된 보고서의 적용을 보여줍니다. 조직은 해당 결과를 바탕으로 방어 체계를 수정하고, 변경 사항의 효과를 측정하기 위해 새로운 시뮬레이션을 실행합니다. 결과적으로 이 프로세스는 반복적이고 적응적인 시뮬레이션 결과를 기반으로 보안의 지속적인 향상을 규정합니다.</span></p>
+</div>
+</details>
+<hr data-ke-style="style5" data-ke-type="horizontalRule"/>
+<p data-ke-size="size16"> </p>
+<h4 data-ke-size="size20"><b>대표적인 BAS의 도구로는 다음이 있다.</b></h4>
+<h2 data-end="70" data-ke-size="size26" data-section-id="1ha4say" data-start="0"><a data-end="70" data-start="3" href="https://atomicredteam.io/?utm_source=chatgpt.com"><b>Atomic Red Team</b><span aria-hidden="true"></span></a></h2>
+<p data-end="211" data-ke-size="size16" data-start="71"><span><span>MITRE ATT&amp;CK</span></span> 기반의 작은 단위 공격 시뮬레이션 도구이다.<br/>각 테스트(Atomic Test)는 특정 ATT&amp;CK 공격 기법 1개를 재현하며, 보안 솔루션이 이를 탐지하는지 확인하는 데 사용된다.</p>
+<h3 data-end="219" data-ke-size="size23" data-section-id="1hrlj9m" data-start="213">특징</h3>
+<p><figure class="imageblock floatRight" data-ke-mobilestyle="widthOrigin" data-origin-height="478" data-origin-width="1100"><span data-alt="Atomic Red Team 2.0" data-phocus="/assets/img/posts/bas-and-wazuh/image-01.webp" data-url="/assets/img/posts/bas-and-wazuh/image-01.webp"><img alt="Atomic Red Team 2.0" data-origin-height="478" data-origin-width="1100" decoding="async" height="152" loading="lazy" src="/assets/img/posts/bas-and-wazuh/image-01.webp" width="350"/></span><figcaption>Atomic Red Team 2.0</figcaption>
+</figure>
+</p>
+<ul data-end="292" data-ke-list-type="disc" data-start="220" style="list-style-type: disc;">
+<li data-end="239" data-section-id="1roszbz" data-start="220">ATT&amp;CK 기법별 테스트 제공</li>
+<li data-end="253" data-section-id="1eu67wh" data-start="240">설치와 사용이 간단함</li>
+<li data-end="273" data-section-id="1jcj9am" data-start="254">EDR/SIEM 탐지 검증 가능</li>
+<li data-end="292" data-section-id="12fcdz0" data-start="274">오픈소스 기반 무료 사용 가능</li>
+</ul>
+<h3 data-end="300" data-ke-size="size23" data-section-id="1hrqnwy" data-start="294">공격 흐름</h3>
+<ul data-end="338" data-ke-list-type="disc" data-start="301" style="list-style-type: disc;">
+<li data-end="316" data-section-id="172zqc" data-start="301">PowerShell 실행</li>
+<li data-end="327" data-section-id="1b0edft" data-start="317">자격 증명 덤프</li>
+<li data-end="338" data-section-id="k7725d" data-start="328">악성 파일 실행</li>
+</ul>
+<p data-ke-size="size16"> </p>
+<h2 data-end="414" data-ke-size="size26" data-section-id="1pis508" data-start="345"><a data-end="414" data-start="348" href="https://caldera.mitre.org/?utm_source=chatgpt.com"><b>MITRE CALDERA</b><span aria-hidden="true"></span></a></h2>
+<p data-end="528" data-ke-size="size16" data-start="415"><span><span>MITRE ATT&amp;CK</span></span> 기반의 자동화 레드팀 시뮬레이션 플랫폼이다.<br/>실제 공격자처럼 여러 공격 단계를 연결하여 전체 공격 흐름을 자동으로 수행할 수 있다.</p>
+<p><figure class="imageblock floatRight" data-ke-mobilestyle="widthOrigin" data-origin-height="800" data-origin-width="1360"><span data-phocus="/assets/img/posts/bas-and-wazuh/image-02.png" data-url="/assets/img/posts/bas-and-wazuh/image-02.png"><img alt="" data-origin-height="800" data-origin-width="1360" decoding="async" height="181" loading="lazy" src="/assets/img/posts/bas-and-wazuh/image-02.png" width="308"/></span></figure>
+</p>
+<h3 data-end="536" data-ke-size="size23" data-section-id="1hrlj9m" data-start="530">특징</h3>
+<ul data-end="600" data-ke-list-type="disc" data-start="537" style="list-style-type: disc;">
+<li data-end="551" data-section-id="1lp4ge8" data-start="537">공격 체인 자동화 가능</li>
+<li data-end="568" data-section-id="1tqrws" data-start="552">실제 해커 행동 흐름 재현</li>
+<li data-end="584" data-section-id="uvpjsy" data-start="569">레드팀·블루팀 훈련 활용</li>
+<li data-end="600" data-section-id="1hvd7h4" data-start="585">반복적인 보안 검증 가능</li>
+</ul>
+<h3 data-end="614" data-ke-size="size23" data-section-id="14jmu62" data-start="602">공격 흐름</h3>
+<p data-end="642" data-is-last-node="" data-is-only-node="" data-ke-size="size16" data-start="615">피싱 → 권한 상승 → 내부 이동 → 데이터 탈취</p>
+<p data-end="642" data-is-last-node="" data-is-only-node="" data-ke-size="size16" data-start="615"> </p>
+<hr data-ke-style="style2" data-ke-type="horizontalRule"/>
+<p data-ke-size="size16"> </p>
+<h3 data-end="52" data-ke-size="size23" data-section-id="ih3jhq" data-start="0"><b>Wazuh란?</b></h3>
+<blockquote data-end="238" data-ke-style="style1" data-start="54"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">Wazuh는 오픈소스 기반의 SIEM(Security Information and Event Management) 및 XDR 플랫폼이다.</span><br/><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">서버, PC, 네트워크 장비 등에서 <span style="background-color: #f6e199;">발생하는 로그와 이벤트를 수집·분석하여 침입 시도나 이상 행위를 탐지하고 대응하는 역할</span>을 한다.<br/><br/></span></blockquote>
+<p data-end="374" data-ke-size="size16" data-start="240"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">Wazuh는 실시간 보안 모니터링 기능을 제공하며, 다양한 공격 행위를 탐지하고 관리자에게 경고(Alert)를 전달할 수 있다. 또한 보안 이벤트를 중앙에서 통합 관리할 수 있어 기업이나 기관의 보안 관제 시스템(SOC)에서 많이 사용된다.</span></p>
+<hr data-end="379" data-ke-style="style1" data-start="376"/>
+<h3 data-end="397" data-ke-size="size23" data-section-id="mk253c" data-start="381"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';"><b>Wazuh가 왜 필요할까?</b></span></h3>
+<p data-end="424" data-ke-size="size16" data-start="399"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">최근 사이버 공격은 단순 악성코드뿐만이 아닌</span></p>
+<ul data-end="473" data-ke-list-type="disc" data-start="425" style="list-style-type: disc;">
+<li data-end="441" data-section-id="5yks3h" data-start="425"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">brute force 공격</span></li>
+<li data-end="449" data-section-id="6uod4w" data-start="442"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">권한 상승</span></li>
+<li data-end="457" data-section-id="1pqihvc" data-start="450"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">내부 침투</span></li>
+<li data-end="464" data-section-id="1w83sn8" data-start="458"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">랜섬웨어</span></li>
+<li data-end="473" data-section-id="yfa0m4" data-start="465"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">데이터 탈취</span></li>
+</ul>
+<p data-end="493" data-ke-size="size16" data-start="475"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">등 다양한 형태로 발전하고 있다. Wazuh는 이러한 공격 흔적을 실시간으로 분석하여 보안 관리자가 빠르게 대응할 수 있도록 도와준다. 또한 다음과 같은 장점이 있다.</span></p>
+<ul data-end="663" data-ke-list-type="disc" data-start="572" style="list-style-type: disc;">
+<li data-end="586" data-section-id="qmx4t0" data-start="572"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">실시간 위협 탐지 가능</span></li>
+<li data-end="604" data-section-id="9cl6wo" data-start="587"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">중앙 집중형 로그 관리 가능</span></li>
+<li data-end="624" data-section-id="1oz7tae" data-start="605"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">취약점 및 파일 변경 감시 가능</span></li>
+<li data-end="645" data-section-id="1q0r198" data-start="625"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">오픈소스 기반으로 무료 사용 가능</span></li>
+<li data-end="663" data-section-id="q6wz9s" data-start="646"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">다양한 운영체제와 연동 가능</span></li>
+</ul>
+<hr data-ke-style="style5" data-ke-type="horizontalRule"/>
+<h4 data-end="684" data-ke-size="size20" data-section-id="kwiwqa" data-start="670"><b><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">Wazuh의 주요 기능</span></b></h4>
+<div>
+<table border="1" data-end="908" data-ke-align="alignLeft" data-ke-style="style15" data-start="686" style="border-collapse: collapse; width: 100%;">
+<tbody data-end="908" data-start="708">
+<tr data-end="738" data-start="708">
+<td data-col-size="sm" data-end="716" data-start="708" style="text-align: center;"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';"><b>로그 분석</b></span></td>
+<td data-col-size="sm" data-end="738" data-start="716" style="text-align: center;"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';"><b>시스템 및 보안 로그를 수집·분석</b></span></td>
+</tr>
+<tr data-end="768" data-start="739">
+<td data-col-size="sm" data-end="747" data-start="739" style="text-align: center;"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';"><b>침입 탐지</b></span></td>
+<td data-col-size="sm" data-end="768" data-start="747"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">비정상 행위 및 공격 시도 탐지</span></td>
+</tr>
+<tr data-end="805" data-start="769">
+<td data-col-size="sm" data-end="786" data-start="769" style="text-align: center;"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';"><b>파일 무결성 검사(FIM)</b></span></td>
+<td data-col-size="sm" data-end="805" data-start="786"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">중요한 파일 변경 여부 감시</span></td>
+</tr>
+<tr data-end="833" data-start="806">
+<td data-col-size="sm" data-end="815" data-start="806" style="text-align: center;"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';"><b>취약점 탐지</b></span></td>
+<td data-col-size="sm" data-end="833" data-start="815"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">시스템의 보안 취약점 확인</span></td>
+</tr>
+<tr data-end="875" data-start="834">
+<td data-col-size="sm" data-end="852" data-start="834" style="text-align: center;"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';"><b>Active Response</b></span></td>
+<td data-col-size="sm" data-end="875" data-start="852"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">특정 공격 발생 시 자동 대응 수행</span></td>
+</tr>
+<tr data-end="908" data-start="876">
+<td data-col-size="sm" data-end="886" data-start="876" style="text-align: center;"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';"><b>SIEM 기능</b></span></td>
+<td data-col-size="sm" data-end="908" data-start="886"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">보안 이벤트 중앙 관리 및 시각화</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 data-end="941" data-ke-size="size20" data-section-id="1oeyapu" data-start="915"><b><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">Wazuh가 탐지할 수 있는 공격 유형</span></b></h4>
+<div>
+<table border="1" data-end="1255" data-ke-align="alignLeft" data-start="943" style="border-collapse: collapse; width: 100%;">
+<tbody data-end="1255" data-start="980">
+<tr data-end="1027" data-start="980">
+<td data-col-size="sm" data-end="997" data-start="980"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">brute force 공격</span></td>
+<td data-col-size="sm" data-end="1012" data-start="997"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">반복 로그인 실패 탐지</span></td>
+<td data-col-size="sm" data-end="1027" data-start="1012"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">계정 탈취 시도 확인</span></td>
+</tr>
+<tr data-end="1076" data-start="1028">
+<td data-col-size="sm" data-end="1039" data-start="1028"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">권한 상승 공격</span></td>
+<td data-col-size="sm" data-end="1064" data-start="1039"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">sudo 사용 및 관리자 권한 획득 감시</span></td>
+<td data-col-size="sm" data-end="1076" data-start="1064"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">내부 공격 탐지</span></td>
+</tr>
+<tr data-end="1121" data-start="1077">
+<td data-col-size="sm" data-end="1084" data-start="1077"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">랜섬웨어</span></td>
+<td data-col-size="sm" data-end="1107" data-start="1084"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">파일 대량 변경 및 암호화 행위 탐지</span></td>
+<td data-col-size="sm" data-end="1121" data-start="1107"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">랜섬웨어 조기 대응</span></td>
+</tr>
+<tr data-end="1169" data-start="1122">
+<td data-col-size="sm" data-end="1133" data-start="1122"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">악성 파일 실행</span></td>
+<td data-col-size="sm" data-end="1156" data-start="1133"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">의심 프로세스 및 악성코드 실행 감지</span></td>
+<td data-col-size="sm" data-end="1169" data-start="1156"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">시스템 감염 방지</span></td>
+</tr>
+<tr data-end="1214" data-start="1170">
+<td data-col-size="sm" data-end="1180" data-start="1170"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">비정상 로그인</span></td>
+<td data-col-size="sm" data-end="1202" data-start="1180"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">해외 IP·비정상 시간 로그인 탐지</span></td>
+<td data-col-size="sm" data-end="1214" data-start="1202"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">계정 보안 강화</span></td>
+</tr>
+<tr data-end="1255" data-start="1215">
+<td data-col-size="sm" data-end="1223" data-start="1215"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">파일 변조</span></td>
+<td data-col-size="sm" data-end="1241" data-start="1223"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">주요 시스템 파일 변경 감시</span></td>
+<td data-col-size="sm" data-end="1255" data-start="1241"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">시스템 무결성 보호</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr data-ke-style="style5" data-ke-type="horizontalRule"/>
+<h3 data-end="1275" data-ke-size="size23" data-section-id="9f0g3a" data-start="1262"><b><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">Wazuh 동작 과정</span></b></h3>
+<h4 data-end="1294" data-ke-size="size20" data-section-id="1lf25lc" data-start="1277"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">1단계 - Agent 설치</span></h4>
+<p data-end="1324" data-ke-size="size16" data-start="1296"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">모니터링할 대상에 Wazuh Agent를 설치한다.</span></p>
+<details data-ke-type="moreLess" data-text-less="닫기" data-text-more="더보기"><summary class="btn-toggle-moreless">더보기</summary>
+<div class="moreless-content">
+<p data-end="1329" data-ke-size="size16" data-start="1326"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">예시</span></p>
+<ul data-end="1371" data-ke-list-type="disc" data-start="1330" style="list-style-type: disc;">
+<li data-end="1341" data-section-id="16jhvj1" data-start="1330"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">Ubuntu 서버</span></li>
+<li data-end="1354" data-section-id="1105w2s" data-start="1342"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">Windows PC</span></li>
+<li data-end="1361" data-section-id="dhxitl" data-start="1355"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">웹 서버</span></li>
+<li data-end="1371" data-section-id="1r03ugk" data-start="1362"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">클라우드 서버</span></li>
+</ul>
+</div>
+</details>
+<hr data-ke-style="style5" data-ke-type="horizontalRule"/>
+<h2 data-end="1398" data-ke-size="size26" data-section-id="61wibg" data-start="1378"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">2단계 - 로그 및 이벤트 수집</span></h2>
+<p data-end="1425" data-ke-size="size16" data-start="1400"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">Agent가 시스템 로그와 이벤트를 수집한다.</span></p>
+<details data-ke-type="moreLess" data-text-less="닫기" data-text-more="더보기"><summary class="btn-toggle-moreless">더보기</summary>
+<div class="moreless-content">
+<p data-end="1430" data-ke-size="size16" data-start="1427"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">예시</span></p>
+<ul data-end="1475" data-ke-list-type="disc" data-start="1431" style="list-style-type: disc;">
+<li data-end="1439" data-section-id="6qpayh" data-start="1431"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">로그인 기록</span></li>
+<li data-end="1451" data-section-id="c3xuhk" data-start="1440"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">SSH 접속 로그</span></li>
+<li data-end="1462" data-section-id="aklk2w" data-start="1452"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">파일 변경 기록</span></li>
+<li data-end="1475" data-section-id="1h5oumk" data-start="1463"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">프로세스 실행 기록</span></li>
+</ul>
+</div>
+</details>
+<hr data-ke-style="style5" data-ke-type="horizontalRule"/>
+<h2 data-end="1498" data-ke-size="size26" data-section-id="em2zg1" data-start="1482"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">3단계 - 분석 및 탐지</span></h2>
+<p data-end="1533" data-ke-size="size16" data-start="1500"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">수집된 로그를 분석하여 공격 패턴이나 이상 행위를 탐지한다.</span></p>
+<details data-ke-type="moreLess" data-text-less="닫기" data-text-more="더보기"><summary class="btn-toggle-moreless">더보기</summary>
+<div class="moreless-content">
+<p data-end="1538" data-ke-size="size16" data-start="1535"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">예시</span></p>
+<ul data-end="1572" data-ke-list-type="disc" data-start="1539" style="list-style-type: disc;">
+<li data-end="1550" data-section-id="1iugled" data-start="1539"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">로그인 실패 반복</span></li>
+<li data-end="1561" data-section-id="1fzjtq0" data-start="1551"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">권한 상승 시도</span></li>
+<li data-end="1572" data-section-id="1phjv7x" data-start="1562"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">악성 명령 실행</span></li>
+</ul>
+</div>
+</details>
+<hr data-ke-style="style5" data-ke-type="horizontalRule"/>
+<h2 data-end="1600" data-ke-size="size26" data-section-id="1bm5ls3" data-start="1579"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">4단계 - 경고(Alert) 발생</span></h2>
+<p data-end="1626" data-ke-size="size16" data-start="1602"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">위협이 탐지되면 관리자에게 경고를 전송한다.</span></p>
+<details data-ke-type="moreLess" data-text-less="닫기" data-text-more="더보기"><summary class="btn-toggle-moreless">더보기</summary>
+<div class="moreless-content">
+<p data-end="1631" data-ke-size="size16" data-start="1628"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">예시</span></p>
+<ul data-end="1668" data-ke-list-type="disc" data-start="1632" style="list-style-type: disc;">
+<li data-end="1646" data-section-id="18d7whd" data-start="1632"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">Dashboard 경고</span></li>
+<li data-end="1655" data-section-id="1kcakkk" data-start="1647"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">이메일 알림</span></li>
+<li data-end="1668" data-section-id="1cbvnib" data-start="1656"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">SIEM 연동 알림</span></li>
+</ul>
+</div>
+</details>
+<hr data-ke-style="style5" data-ke-type="horizontalRule"/>
+<h2 data-end="1691" data-ke-size="size26" data-section-id="h7rmi7" data-start="1675"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">5단계 - 대응 및 차단</span></h2>
+<p data-end="1716" data-ke-size="size16" data-start="1693"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">설정에 따라 자동 대응을 수행할 수 있다.</span></p>
+<details data-ke-type="moreLess" data-text-less="닫기" data-text-more="더보기"><summary class="btn-toggle-moreless">더보기</summary>
+<div class="moreless-content">
+<p data-end="1721" data-ke-size="size16" data-start="1718"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">예시</span></p>
+<ul data-end="1754" data-ke-list-type="disc" data-start="1722" style="list-style-type: disc;">
+<li data-end="1732" data-section-id="7dunrh" data-start="1722"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">공격 IP 차단</span></li>
+<li data-end="1744" data-section-id="m7qjlw" data-start="1733"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">사용자 계정 잠금</span></li>
+<li data-end="1754" data-section-id="c9tqxx" data-start="1745"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">프로세스 종료</span></li>
+</ul>
+</div>
+</details>
+<hr data-ke-style="style5" data-ke-type="horizontalRule"/>
+<div>
+<div data-is-intersecting="true" data-turn-id-container="request-WEB:d95130ad-2f49-45f8-a428-71ed15d22180-8">
+<div>
+<div>
+<div>
+<div>
+<div data-message-author-role="assistant" data-message-id="8c6ff8d0-db47-4f5f-99c5-7d3b84047423" data-message-model-slug="gpt-5-5" data-turn-start-message="true">
+<div>
+<div>
+<h4 data-end="16" data-ke-size="size20" data-section-id="1gxj6t7" data-start="0"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">Wazuh와 BAS의 관계</span></h4>
+<p data-end="175" data-ke-size="size16" data-start="18"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">BAS가 공격을 시뮬레이션하면 Wazuh는 그 공격을 탐지하고 대응하는 역할을 수행할 수 있다.</span><br/><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">즉 BAS는 실제 해커의 행동을 재현하고, Wazuh는 시스템에서 발생하는 로그와 이벤트를 분석하여 위협 여부를 판단한다.</span></p>
+<p data-end="385" data-ke-size="size16" data-start="177"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">BAS가 brute force 공격이나 권한 상승 공격을 실행하면 시스템에서는 로그인 실패 기록, SSH 접속 로그, 관리자 권한 사용 기록 등의 이벤트가 생성된다. 이후 Wazuh가 이를 실시간으로 분석하여 이상 행위를 탐지하고 관리자에게 경고(Alert)를 발생시킨다. 또한 설정에 따라 공격 IP 차단이나 계정 잠금 같은 자동 대응 기능도 수행할 수 있다.</span></p>
+<p data-end="581" data-ke-size="size16" data-start="511"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">결론은 BAS와 Wazuh를 함께 사용하면 단순 공격 테스트뿐만 아니라 공격 탐지 및 대응 과정까지 전체적으로 검증할 수 있다.</span></p>
+<h4 data-end="588" data-ke-size="size20" data-section-id="1m6gdx" data-start="583"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">결론</span></h4>
+<ul data-end="626" data-ke-list-type="disc" data-start="589" style="list-style-type: disc;">
+<li data-end="605" data-section-id="17nu7t9" data-start="589"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">BAS = 공격 시뮬레이션</span></li>
+<li data-end="626" data-section-id="gaxng6" data-start="606"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">Wazuh = 공격 탐지 및 대응</span></li>
+</ul>
+<p data-end="641" data-is-last-node="" data-is-only-node="" data-ke-size="size16" data-start="628"><span style="font-family: 'Noto Sans Demilight', 'Noto Sans KR';">역할이라고 볼 수 있다.</span></p>
+</div>
+</div>
+</div>
+</div>
+<div> </div>
+</div>
+</div>
+</div>
+</div>
+</div></div>
+{% endraw %}

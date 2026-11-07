@@ -285,3 +285,9 @@ main:focus { outline: none; }
 }
 
 .tistory-import [style*="font-family:"] { font-family: var(--sans) !important; }
+
+.tistory-import [style*="color: #000000"], .tistory-import [style*="color: #161616"], .tistory-import [style*="color: #5a5c76"] { color: var(--ink) !important; }
+.tistory-import [style*="background-color: #ffffff"] { background-color: transparent !important; }
+.tistory-import [style*="background-color: #f6e199"] { color: #110c09 !important; }
+.tistory-import details { margin: 16px 0; padding: 12px 18px; border: 1px solid var(--line); }
+.tistory-import summary { color: var(--accent); cursor: pointer; }
