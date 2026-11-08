@@ -19,7 +19,7 @@ title: PX # the main title
 tagline: 개발 · 보안 학습 노트
 
 description: >- # used by seo meta and the atom feed
-  Parksejeong의 개발과 보안 학습 노트. 문제 풀이, 구현 과정, 읽은 자료와 활동 기록.
+  Parksejeong의 개발과 보안 학습 노트. 문제 풀이, 구현 과정, 읽은 자료와 활동 기록
 
 # Fill in the protocol & hostname for your site.
 # E.g. 'https://username.github.io', note that it does not end with a '/'.
