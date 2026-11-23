@@ -55,11 +55,14 @@ tags: [linux-kernel, kfence, memory-safety, paper-review]
 <p>기존 Linux 커널은 중요한 객체를 다른 객체와 분리하거나 메모리에 식별표를 붙이는 등 공격을 어렵게 만드 는 기능을 발전시켜 왔다. 그런데 저자들은 &ldquo;보호 기능이 일반 Slab 경로에는 적용되지만 KFENCE 경로에서 도 똑같이 적용될까?&rdquo;라는 질문을 던졌다. 논문의 답은 그렇지 않다였다. KFENCE 는 메모리 오류 검사를 위한 고유한 풀(Pool)을 사용한다. 풀은 여러 객체를 저장하기 위해 미리 마련해 놓은 메모리 공간이다. 이 경로에서는 일반 Slab 이 제공하는 유형&middot;크기별 객체 분리가 일관되게 적용되지 않으며, KASAN 이나 MTE 의 검사도 동일하게 적용되지 않는 경우가 있었다. 따라서 문제의 핵심은 &ldquo;KFENCE 때문에 UAF 버그가 새로 생겼다&rdquo;가 아니다. 기존 UAF 취약점이 있을 때 KFENCE 의 별도 할당 경로를 이용하면, 원래는 서로 다른 영역에 있어야 할 객체가 같은 메모리 자리를 재사 용할 수 있다는 것이다.</p>
 <h2><span>5. Fence2Pwn의 핵심 아이디어</span></h2>
 <p>논문은 KFENCE 동작을 분석해 다섯 가지 특성을 W1 부터 W5 까지 정리했다. 모두가 구현 실수라는 뜻은 아 니다. 낮은 성능 부담과 오류 탐지라는 목적을 위해 선택된 설계가 공격 관점에서는 약점이 될 수도 있다는 의미다.</p>
+<figure><img src="{{ "/assets/img/posts/fence2pwn-kfence-review/kfence-five-weaknesses.png" | relative_url }}" alt="논문에서 정리한 KFENCE의 다섯 가지 약점"></figure>
 <figure><img src="{{ "/assets/img/posts/fence2pwn-kfence-review/kfence-design-limitations.png" | relative_url }}" alt="KFENCE 설계의 다섯 가지 한계"></figure>
 <h2>6. 보호 정책의 적용 범위</h2><p>별도 할당 경로에서 객체 분리와 메모리 태그 검사가 달라지면 같은 메모리 오류도 환경에 따라 영향이 달라질 수 있다. 방어 기능을 평가할 때는 일반 할당과 표본 할당에 적용되는 보호 정책을 함께 확인해야 한다.</p>
 <h2><span>7. 실험 환경 및 평가 결과</span></h2>
 <p>연구진은 여러 Linux 커널 버전, QEMU/KVM 가상머신, Fedora 43 노트북, Android 16이 설치된 Pixel 8a에서 동작을 조사했다. 대표 실험에서는 커널 모듈로 UAF를 모사했고, 조건별로 독립적인 가상머신 100개를 사용했다.</p>
 <h3><span>7.1 객체 중첩 성공률</span></h3>
+<figure><img src="{{ "/assets/img/posts/fence2pwn-kfence-review/overlap-success-rates.png" | relative_url }}" alt="Linux 커널 버전별 객체 중첩 성공률"></figure>
+<figure><img src="{{ "/assets/img/posts/fence2pwn-kfence-review/overlap-success-rate-table.png" | relative_url }}" alt="실험 조건별 객체 중첩 성공률 표"></figure>
 <p><span> 논문에서 보고한 90%는 실험용 UAF 취약점과 특정 객체 배치 조건에서의 결과다. &ldquo;Linux 시 스템을 90% 확률로 해킹한다&rdquo;는 뜻이 아니다. 수치의 의미를 정확히 구분하는 것이 중요하다. </span></p>
 <h3><span>7.2 실제 기기와 부하 환경 </span></h3>
 <p>Pixel 8a / Android 16 실험에서는 KFENCE 를 거친 객체에 일반 Slab 객체처럼 MTE 의 무작위 태그 보호 가 적용되지 않는 점을 확인했다. 저자들은 또한 작업 부하가 높은 환경도 조사했다. 예를 들어 NGINX 부하 실 험에서는 검사한 8 개 UAF 객체 중 KFENCE 가 할당한 객체가 없었다. 이는 공격의 결과가 주변 프로그램의 활동과 메모리 상태에 영향을 받는다는 증거다.</p>
