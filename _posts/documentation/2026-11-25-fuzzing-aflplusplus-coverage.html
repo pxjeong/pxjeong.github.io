@@ -1,0 +1,274 @@
+---
+layout: post
+title: "퍼징과 퍼저가 무엇일까? AFL++로 실행 경로를 관찰해 보자"
+date: 2026-11-25T15:02:47+09:00
+categories: ["블로그/기술문서"]
+---
+{% raw %}
+<div class="tistory-import"><p data-ke-size="size16"> </p>
+<p data-ke-size="size16">프로그램을 만들면 보통 사람들은 먼저 정상적인 값들을 입력을 하는데</p>
+<p data-ke-size="size16">예를 들어 게임의 볼륨 설정에 5를 넣었을때 소리의 크기가 제대로 바뀌는지 확인하는 식이다.</p>
+<p data-ke-size="size16">그런데 숫자가 들어가야 하는 곳에 문자를 넣거나 또는 아무 값도 입력하지 않는다면 프로그램은 어떻게 작동을 할까?</p>
+<p data-ke-size="size16">몇가지들은 직접 넣거나 떠올려서 확인을 할 수 있지만 입력의 경우가 많아진다면 하나하나 시험 하기가 어렵다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">그래서 이런 상황에서 사용하는<u><b> fuzzing</b></u>을 공부를 해보자!</p>
+<p data-ke-size="size16">퍼징이 어떤 방식으로 테스트 입력을 만드는지 알아보고 AFL++와 Jackalope가 프로그램의 실행을 어떻게 관찰을 할지</p>
+<p data-ke-size="size16">비교를 해 볼 예정이고 실습에서는 간단한 C 프로그램을 대상으로 AFL++의 커버리지 기록과 자동 테스트 화면을 확인을 해볼것이다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<h2 data-ke-size="size26"><b>퍼징과 퍼저(fuzzer)의 차이</b><b></b></h2>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">먼저 앞서 얘기한 <b><u>퍼징</u>은 프로그램에 다양한 입력들을 반복해서 넣고 입력을 처리하는 과정에서 문제가 생기는지 확인하는 테스트 방법이다. 이 과정을 자동으로 수행해 주는 도구를 <u>퍼저(fuzzer)</u>라고 한다.</b></p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">예를 들어서 <span style="background-color: #9d9d9d;">V5</span>를 읽으면 볼륨 설정값 5를 받아들이는 프로그램이 있다고 가정을 한다면 이 프로그램을 테스트를 할려면</p>
+<p data-ke-size="size16">아래와 같은 입력들을 생각 할 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<table border="1" data-ke-align="alignLeft" style="border-collapse: collapse; width: 100%;">
+<tbody>
+<tr>
+<td>V5</td>
+<td>정상적인 볼륨 값을 받아들이는가?</td>
+</tr>
+<tr>
+<td>Vx</td>
+<td>숫자 대신 문자가 들어오면 거부하는가?</td>
+</tr>
+<tr>
+<td>V</td>
+<td>볼륨 값이 빠져 있으면 어떻게 처리하는가?</td>
+</tr>
+<tr>
+<td>X5</td>
+<td>알 수 없는 설정 종류를 어떻게 처리하는가?</td>
+</tr>
+</tbody>
+</table>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">직접 사람이 표의 입력을 하나씩 넣을수도 있고 퍼저에 <span style="background-color: #9d9d9d;">V5</span>를 주고 여러 변형을 자동으로 시험하게 할 수도 있다.</p>
+<p data-ke-size="size16">두 번째 글자를 바꾸면 <span style="background-color: #9d9d9d;">Vx</span>가 되고 해당 글자를 삭제를 하면 <span style="background-color: #9d9d9d;">V</span>가 되는것처럼</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이떄 <span style="background-color: #9d9d9d;">Vx</span>를 넣었을때 오류 메시지를 출력하면서 정상적으로 종료가 된다면 잘못된 값을 올바르게 처리를 한거다.</p>
+<p data-ke-size="size16">반대로 프로그램이 갑자기 종료가 되거나 예상과 달리 해당 값을 받아들인다면 원인을 조사 할 수 있다.</p>
+<p data-ke-size="size16">특히 크래시는 조사할 신호다. <b>크래시</b>가 발생한 이유와 실제 영향은 추가 분석을 통해서 판단을 해야한다.</p>
+<p data-ke-size="size16"> </p>
+<h2 data-ke-size="size26" style="color: #000000; text-align: start;"><b>퍼징은 입력을 어떻게 만들고 고를까?</b></h2>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">퍼징의 종류를 조사하면서 처음에는 <b>변이 기반, 생성 기반, 커버리지 기반</b>이 서로 다른 세 가지 선택지라고 생각하면</p>
+<p data-ke-size="size16">쉬웠다. 기준을 나누고 보니 어떤 차이들이 있는지 이해 할 수 있었다. 한번 알아보자</p>
+<p data-ke-size="size16"> </p>
+<h4 data-ke-size="size20"><b>변이 기반 퍼징</b></h4>
+<p data-ke-size="size16">이미 있는 입력을 조금씩 바꾸는 방식이다. <span style="background-color: #9d9d9d;">V5</span>에서 <span style="background-color: #9d9d9d;">5</span>를 <span style="background-color: #9d9d9d;">x</span>로 바꾸면 <span style="background-color: #9d9d9d;">Vx</span>가 되고 첫 글자를 바꾸면 X5가 된다</p>
+<p data-ke-size="size16">이때 처음 제공하는 <span style="background-color: #9d9d9d;">V5</span> 같은 입력을 시드(Seed)라고 부른다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">정상 입력 하나를 출발점으로 삼는다면 입력의 구조를 유지를 하면서 다양한 상황을 시험 해 볼 수 있다.</p>
+<p data-ke-size="size16"><span style="background-color: #9d9d9d;">Vx</span>에는 첫 글자 <span style="background-color: #9d9d9d;">V</span>가 남으므로 프로그램이 볼륨 값을 검사하는 부분까지 도달을 한다. 반면 X5는 설정 종류 검사에 먼저</p>
+<p data-ke-size="size16">거부가 된다. 똑같이 한 글자만 바꿔도 시험하는 코드가 달라지는거다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<h4 data-ke-size="size20" style="color: #000000; text-align: start;"><b>생성 기반 퍼징</b></h4>
+<p data-ke-size="size16">입력이 어떤 구조를 갖는질 정하고 그 규칙을 새 입력을 만드는 방식이다. 어려운 말 같지만 예를 들어서</p>
+<p data-ke-size="size16">첫 글자를 설정 종류로 두 번째 글자를 설정값으로 취급하도록 규칙을 정할 수 있다. 그러면 두 위치에 들어갈 값을 조합을 해서 다양한 입력을 만들 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">두 글자로 끝나는 볼륨 예시는 차이가 작아 보인다. 여러 필드가 순서대로 나오는 파일 형식에서는 구조를 유지한채 입력을 만들어야 첫 부분의 형식 검사를 통과하고 뒤에 있는 처리 코드까지 시험을 해 볼 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<h4 data-ke-size="size20" style="color: #000000; text-align: start;"><b>커버리지 기반 퍼징</b></h4>
+<p data-ke-size="size16"><b>커버리지(Coverage)는 </b>테스트할 때 코드의 어떤 부분이 실행됐는지 나타내는 정보다. 커버리지 기반 퍼저는</p>
+<p data-ke-size="size16">입력을 시험한 뒤에 그 기록을 확인하고 새 경로를 실행한 입력을 저장해서 이후 테스트에 활용 할 수 있다.</p>
+<p data-ke-size="size16">이렇게 보관을 해서 다음 테스트에 사용하는 코드 입력 모음을 <b>코퍼스(Corpus)</b> 라고 한다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">예를 들어서 <span style="background-color: #9d9d9d;">V5</span>와 <span style="background-color: #9d9d9d;">Vx</span>는 둘 다 설정 종류 검사에서<span style="background-color: #9d9d9d;"> V</span>로 인정이 되고 그 다음 <span style="background-color: #9d9d9d;">V5</span>는 숫자 검사에 통과하고 <span style="background-color: #9d9d9d;">Vx</span>는 숫자 검사에서 거부가 된다. 두 입력 모두 정상적으로 종료가 되더라도 통과한 코드 분기는 서로 다르다. </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">정리를 하면<span style="background-color: #9d9d9d;"> V</span>5에서 <span style="background-color: #9d9d9d;">Vx</span>를 만드는 과정은 <b>변이</b>이고 <span style="background-color: #9d9d9d;">Vx</span>가 새 경로를 실행 했는지 확인을 해서 다음 테스트에 활용하는 과정은 <b>커버리지 피드백</b>이다. 두 개념은 한 퍼저에서 함께 사용 될 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<h2 data-ke-size="size26" style="color: #000000; text-align: start;"><b>AFL++와 Jackalop는 어떻게 관찰을 할까?</b></h2>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"><span>앞서 얘기 한것처럼 퍼저는 </span><b><span>입력에 따라 프로그램의 어느 부분이 실행됐는지</span></b><span> 확인을 할 수 있다. 코드가 실행된 흔적을 남기거나 수집하는 작업을 </span><b><span>계측</span></b><span>이라고 한다. AFL++와 Jackalope의 차이는 같은 볼륨 예제를 놓고 보면 이해하기 쉽다.</span></p>
+<p data-ke-size="size16"> </p>
+<h4 data-ke-size="size20"><b>AFL++</b></h4>
+<p data-ke-size="size16">AFL++는 커버리지 기반 퍼저다. 이번 실습 예제에서는 volume.c를 실행 파일로 바꿀 때 <span style="background-color: #9d9d9d;"><b>afl-clang-fast</b><span style="background-color: #ffffff;">를 사용 할것이다.</span></span><span></span></p>
+<p data-ke-size="size16"><span style="background-color: #9d9d9d;"><span style="background-color: #ffffff;">이 도구는 C 코드를 실행 할 수 있는 형태로 바꾸면서 프로그램이 어떤 코드 분기를 지나갔는지 기록 할 수 있도록 해준다.</span></span></p>
+<p data-ke-size="size16"><span style="background-color: #9d9d9d;"><span style="background-color: #ffffff;">그 다음엔 두가지도 해볼건데 </span></span><b><span style="background-color: #9d9d9d;">afl-showmap</span><span>으로 입력 하나씩 확인 할거다. </span></b><span> </span><span style="background-color: #9d9d9d;">V5</span><span>를 한 번 실행해 기록을 저장하고 </span><span style="background-color: #9d9d9d;">Vx</span><span>도 같은 방법으로 실행 해볼거다. 두 기록을 비교하면 입력에 따라 실행된 코드가 달라졌는지 확인할 수 있을것이다. </span><b><span style="background-color: #9d9d9d;">afl-fuzz</span><span>로 여러 입력을 자동으로 시험도 해볼것이다.</span></b><span> 시작 입력으로 </span><span style="background-color: #9d9d9d;">V5</span><span>를 주면 AFL++가 그 입력을 바꿔 가며 프로그램을 반복해서 실행을 한다. 그러다 이전에 보지 못한 분기를 실행한 입력이 나오면 그 입력을 보관해 다음 테스트에 활용할 수 있다.</span></p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size18"><span>뭔가 어려운 말들이 많이 나오는데 실습을 해보면서 확인 해보면 쉬울거다!</span></p>
+<p data-ke-size="size18"> </p>
+<p data-ke-size="size18"> </p>
+<p data-ke-size="size16">그리고 AFL++에는 모드가 있는데 이미 만들어진 실행 파일을 대상으로 쓰는 QEMU 모드도 있다! 하지만 이번 실습에서는</p>
+<p data-ke-size="size16"><span style="background-color: #9d9d9d;">volume.c</span> 라는 실행 파일을 직접 작성을 해볼것이기에 실행 파일을 만들 때 기록 기능을 넣는 방식으로 사용 해볼거다.</p>
+<p data-ke-size="size16"> </p>
+<h4 data-ke-size="size20" style="color: #000000; text-align: start;"><b>Jackalop</b></h4>
+<p data-ke-size="size16"><b> Jackalope</b>는 Google Project Zero의 <b>바이너리 커버리지 기반 퍼저</b>다. <span>기본 구성에서는 </span><b><span>TinyInst</span></b><span>를 사용해 이미 빌드된 프로그램이 실행되는 동안 경로를 관찰을 할것이다. 공식 문서에는 Windows, macOS, Linux, Android 지원이 안내되어 있고 테스트 입력은 파일이나 공유 메모리로 전달할 수 있습니다.</span></p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"><span>두 퍼저 모두 </span><b>V5<span>와 </span>Vx<span>가 프로그램 안에서 서로 다른 부분을 실행했는지</span></b><span> 살펴볼 수 있다. 이번 AFL++ 실습에서는 그 차이를 기록할 수 있도록 실행 파일을 직접 만들고 Jackalope의 기본 방식에서는 이미 만들어진 실행 파일을 실행하면서 그 차이를 관찰을 해볼거다.</span></p>
+<p data-ke-size="size16"> </p>
+<table border="1" data-ke-align="alignLeft" style="border-collapse: collapse; width: 100%;">
+<tbody>
+<tr>
+<td style="width: 20.1163%;"><b>비교 항목</b></td>
+<td style="width: 43.372%;"><b>AFL++의 이번 실습 방식</b></td>
+<td style="width: 36.5117%;"><b>Jackalop의 기본 방식</b></td>
+</tr>
+<tr>
+<td style="width: 20.1163%;">언제 계측하는가?</td>
+<td style="width: 43.372%;">소스 코드를 컴파일할 때</td>
+<td style="width: 36.5117%;">이미 빌드된 프로그램이 실행될 때</td>
+</tr>
+<tr>
+<td style="width: 20.1163%;">어떤 기능을 사용하는가?</td>
+<td style="width: 43.372%;">afl-clang-fast로 빌드하고 afl-showmap으로 기록 확인</td>
+<td style="width: 36.5117%;">TinyInst를 사용해 바이너리 실행을 관찰</td>
+</tr>
+<tr>
+<td style="width: 20.1163%;">이번 글에 사용한 근거</td>
+<td style="width: 43.372%;">볼륨 예제를 직접 실행한 결과</td>
+<td style="width: 36.5117%;">공식 저장소의 README</td>
+</tr>
+</tbody>
+</table>
+<p data-ke-size="size16"> </p>
+<hr contenteditable="false" data-ke-style="style5" data-ke-type="horizontalRule"/>
+<h2 data-ke-size="size26" style="color: #000000; text-align: start;"><b>AFL++ 실습</b></h2>
+<h4 data-ke-size="size20"><b>실습 환경과 프로그램</b></h4>
+<p data-ke-size="size16">자 드디어 실습이다. Windows 11의 WSL2 Ubuntu 환경에서 간단한 볼륨 설정 프로그램을 작성을 해볼거다</p>
+<p data-ke-size="size16">WSL은 Windows에서 Linux 환경을 사용 할 수 있게 해주는 기능이다.</p>
+<p data-ke-size="size16">Ubuntu 창에 두 줄을 입력을 해서 AFL++을 설치를 해보자</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1795558213664"><code>sudo apt update
+sudo apt install afl++ clang</code></pre>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">afl++<span>는 이번에 사용할 퍼징 도구 모음이고, </span>clang<span>은 C 코드를 실행 파일로 만드는 데 사용하는 컴파일러이다. Ubuntu에서는 AFL++를 </span>afl++<span> 패키지로 설치할 수 있다</span></p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"><span>설치가 끝났으면 필요한 도구들이 있는지 확인을 하고 실습 폴더를 만든 뒤 이동을 할것이다.</span></p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1795558349549"><code>command -v afl-clang-fast afl-showmap afl-fuzz
+mkdir -p ~/afl-volume-demo
+cd ~/afl-volume-demo
+pwd</code></pre>
+<p data-ke-size="size16"> </p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="120" data-origin-width="620"><span data-phocus="/assets/img/posts/fuzzing-aflplusplus-coverage/image-01.png" data-url="/assets/img/posts/fuzzing-aflplusplus-coverage/image-01.png"><img data-origin-height="120" data-origin-width="620" height="120" loading="lazy" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" src="/assets/img/posts/fuzzing-aflplusplus-coverage/image-01.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2Fb6dStI%2FdJMcadD7mPN%2FAAAAAAAAAAAAAAAAAAAAANy6JrS8MjtpDJv4W0Jhplz7454xlJ3G5npHzfBZXM1K%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1796050799%26allow_ip%3D%26allow_referer%3D%26signature%3Dxk6uXO0iRLkSXDsJFmU8zfQilEg%253D" width="620"/></span></figure>
+<figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="48" data-origin-width="368"><span data-phocus="/assets/img/posts/fuzzing-aflplusplus-coverage/image-02.png" data-url="/assets/img/posts/fuzzing-aflplusplus-coverage/image-02.png"><img data-origin-height="48" data-origin-width="368" height="48" loading="lazy" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" src="/assets/img/posts/fuzzing-aflplusplus-coverage/image-02.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FcLLf8T%2FdJMcajxU1gt%2FAAAAAAAAAAAAAAAAAAAAABCGOalPvWdiIHkMB4ASXtYg0KW9i1GP59E1irdjnRZj%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1796050799%26allow_ip%3D%26allow_referer%3D%26signature%3D4n72jojaHzhwOOna2wfCleODLng%253D" width="368"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이렇게 도구 3개가 나오고 afl-volume-demo라는 이름의 디렉토리를 만들고 이동이 됐다면 성공이다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">자 이제 볼륨 검사 프로그램을 만들어 볼것이다.</p>
+<p data-ke-size="size16"><span>아래 블록을 </span><b><span>첫 줄부터 마지막 </span>EOF<span>까지 통째로 복사해서</span></b><span> Ubuntu 창에 붙여 넣는다. 마지막 줄 뒤에서 Enter를 누르면 </span>volume.c<span>라는 파일이 만들어질것이다.</span></p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1795558695877"><code>cat &gt; volume.c &lt;&lt;'EOF'
+#include &lt;stdio.h&gt;
+
+int main(void) {
+    int setting = getchar();
+    int value = getchar();
+
+    if (setting != 'V') {
+        puts("unknown setting");
+    } else if (value &gt;= '0' &amp;&amp; value &lt;= '9') {
+        puts("volume accepted");
+    } else {
+        puts("invalid volume");
+    }
+
+    return 0;
+}
+EOF</code></pre>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">volume.c 라는 코드를 만들었는데 코드를 보자면 getchar()와 puts()가 먼저 보일텐데</p>
+<p data-ke-size="size16">getchar()은 글자를 하나를 읽는거고 setting과 value 라는 변수에 두번 썼으니 입력의 처음 두 글자를 읽는다.</p>
+<p data-ke-size="size16">puts()는 화면에 메시지를 보여주는 함수다. 어느 메시지를 보여줄지는 아래의 코드인 if와 else가 결정을 할것이다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이제 volume.c를 실행 할 수 있는 파일로 바꾼다. 이 과정을 <b>컴파일</b>이라고 한다.</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1795558897043"><code>afl-clang-fast -O0 volume.c -o volume</code></pre>
+<p data-ke-size="size16">-o volume은 결과 파일의 이름을 volume으로 정한다는 뜻이다. </p>
+<p data-ke-size="size16"><b>afl-clang-fast</b><span>를 쓰면 실행 파일을 만들 때 </span><b><span>프로그램의 어느 부분이 실행됐는지 알아볼 수 있는 기록 기능</span></b><span>도 함께 들어간다.계측이 여기서는 이 작업을 가리킵니다.</span></p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">자 이제 volume이 실행 파일이 됐으니 한번 글자를 만들고 volume 실행 파일에다 전달을 해보고 결과를 봐보자</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1795559049443"><code>printf 'X5' | ./volume
+printf 'V5' | ./volume
+printf 'Vx' | ./volume</code></pre>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="104" data-origin-width="300"><span data-phocus="/assets/img/posts/fuzzing-aflplusplus-coverage/image-03.png" data-url="/assets/img/posts/fuzzing-aflplusplus-coverage/image-03.png"><img data-origin-height="104" data-origin-width="300" height="104" loading="lazy" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" src="/assets/img/posts/fuzzing-aflplusplus-coverage/image-03.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2Fbp9WiE%2FdJMcabT3EwZ%2FAAAAAAAAAAAAAAAAAAAAAMDbx83Gh0s-hoxDwIelKko_yFGfHSPTZRUM3NdX4nld%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1796050799%26allow_ip%3D%26allow_referer%3D%26signature%3DCJZ50MuWAZ9y0o1BO1nMh0jhCd8%253D" width="300"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이런 출력이 떴다면 정상이다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">X5를 넣었을때 첫문자가 V가 아니기에 unknown setting이 뜬것이고 V5는 첫문자도 알맞게 들어갔고 숫자도 if else문 조건에 충족하니 volume accepted가 뜬것이다. 마지막으로 Vx는 else문에 넣어뒀는데 숫자가 아닌 값을 받았을 때 프로그램이 올바르게 거부를 한것이다. 그래서 invalid volume이 뜬것이다.</p>
+<p data-ke-size="size16">이제 화면에 보이는 메시지와 함께 프로그램 내부의 실행 기록도 확인해볼것이다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">자 이번엔 AFL++에 있는 도구인 afl-showmap을 사용해볼거다. 입력 하나로 프로그램을 실행 했을때 어떤 코드가 실행 됐는지 기록해 주는 도구다. 실행된 코드에 대한 정보를 <b>커버리지(Coverage)</b>라고 부릅니다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1795584157129"><code>printf 'V5' | afl-showmap -q -o coverage-V5.txt -- ./volume
+printf 'Vx' | afl-showmap -q -o coverage-Vx.txt -- ./volume</code></pre>
+<p data-ke-size="size16"> </p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="150" data-origin-width="1010"><span data-phocus="/assets/img/posts/fuzzing-aflplusplus-coverage/image-04.png" data-url="/assets/img/posts/fuzzing-aflplusplus-coverage/image-04.png"><img data-origin-height="150" data-origin-width="1010" height="150" loading="lazy" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" src="/assets/img/posts/fuzzing-aflplusplus-coverage/image-04.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FWjGa6%2FdJMcaiy2pyE%2FAAAAAAAAAAAAAAAAAAAAAIXIs8TBVxZo3o6qbz9vLmM14N0xDuxAWQSgIV11qN4A%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1796050799%26allow_ip%3D%26allow_referer%3D%26signature%3DDOBp34C4LCDSsv8BEWPZRgasjvw%253D" width="1010"/></span></figure>
+</p>
+<p data-ke-size="size16">첫번째 줄은 V5의 기록을 coverage-v5.txt에 저장을 하는거고 두번째 명령은 Vx의 기록을 coverage-Vx.txt에 저장을 하는 명령어다</p>
+<p data-ke-size="size16">-q 옵션을 넣어서 안내 출력을 줄였기 때문에 터미널에 메시지가 안나올 수 있다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">두 파일을 한번 비교해보는 명령어를 쳐보자</p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1795584346668"><code>diff -u coverage-V5.txt coverage-Vx.txt</code></pre>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">출력된 메시지들을 보면 맨 위에 나오는 파일 이름 두 줄 아래의 -와 +만 보면 된다.  -줄은 첫번째 파일인 V5의 기록이고</p>
+<p data-ke-size="size16">+줄은 두번째 파일인 Vx의 기록이다. 숫자는 AFL++가 실행 기록에 붙인 식별자다. 이 실습에선 숫자 자체보다 두 파일 사이에 어떤 차이가 있는질 보면 된다</p>
+<p><figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="222" data-origin-width="1176"><span data-phocus="/assets/img/posts/fuzzing-aflplusplus-coverage/image-05.png" data-url="/assets/img/posts/fuzzing-aflplusplus-coverage/image-05.png"><img data-origin-height="222" data-origin-width="1176" height="222" loading="lazy" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" src="/assets/img/posts/fuzzing-aflplusplus-coverage/image-05.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FNEmrd%2FdJMcajdtwEO%2FAAAAAAAAAAAAAAAAAAAAAASw_1wX9pefJPi_dTA3NnMyfIIz9CR3uA0muQfzCkrO%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1796050799%26allow_ip%3D%26allow_referer%3D%26signature%3DZO4MHrkwPhV2Fi65b9I4S1dAOU8%253D" width="1176"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">지금까진 V5와 Vx를 직접 골랐는데 이번엔 V5만 준비를 하고 AFL++가 그 입력을 바꿔가면서 테스트 해보겠다.</p>
+<p data-ke-size="size16">이렇게 처음 주는 입력을 아까 얘기한 시드(Seed)라고 부른다.</p>
+<p data-ke-size="size16"> </p>
+<pre class="bash" data-ke-language="bash" data-ke-type="codeblock" id="code_1795585130184"><code>mkdir -p seeds
+printf 'V5' &gt; seeds/volume.txt
+afl-fuzz -i seeds -o results -- ./volume</code></pre>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">첫번째와 두번째 줄은 seeds 폴더를 만들고 V5를 그 안에 volume.txt에 저장을 한다. 마지막 줄은 afl-fuzz라는 자동 입력 도구를 써서 실행을 할것이다.</p>
+<p data-ke-size="size16">-i seeds는 시작 입력을 읽을 폴더 -o results는 실행 결과를 저장할 폴더다. -- 뒤에 ./volume은 반복해서 실행할 프로그램이다.</p>
+<p data-ke-size="size16">이런 화면이 뜨면서 숫자들이 막 움직일것이다. </p>
+<p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="866" data-origin-width="1340"><span data-phocus="/assets/img/posts/fuzzing-aflplusplus-coverage/image-06.png" data-url="/assets/img/posts/fuzzing-aflplusplus-coverage/image-06.png"><img data-origin-height="866" data-origin-width="1340" height="866" loading="lazy" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" src="/assets/img/posts/fuzzing-aflplusplus-coverage/image-06.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FbX9uZs%2FdJMb9924eb2%2FAAAAAAAAAAAAAAAAAAAAAMHaKCLvoyMlVCfH1JyEl5MQFhvGGzWWVHXeuXRO23Ir%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1796050799%26allow_ip%3D%26allow_referer%3D%26signature%3DlvG1Spn7xnXjuSPguBuelScUzyA%253D" width="763"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<table border="1" data-ke-align="alignLeft" style="border-collapse: collapse; width: 100%; height: 84px;">
+<tbody>
+<tr style="height: 21px;">
+<td style="height: 21px;"><b>화면에서 본 항목</b></td>
+<td style="height: 21px;"><b>뜻</b></td>
+<td style="height: 21px;"><b>내 실행 결과</b></td>
+</tr>
+<tr style="height: 21px;">
+<td style="height: 21px;">total execs</td>
+<td style="height: 21px;">프로그램을 실행한 횟수</td>
+<td style="height: 21px;">[화면에 나온 값]</td>
+</tr>
+<tr style="height: 21px;">
+<td style="height: 21px;">corpus count</td>
+<td style="height: 21px;">퍼저가 다시 활용하려고 보관 중인 입력 수</td>
+<td style="height: 21px;">[화면에 나온 값]</td>
+</tr>
+<tr style="height: 21px;">
+<td style="height: 21px;">saved crashes</td>
+<td style="height: 21px;">프로그램을 비정상 종료시킨 입력을 저장한 수</td>
+<td style="height: 21px;">[화면에 나온 값]</td>
+</tr>
+</tbody>
+</table>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이렇게 자동 입력 테스트까지 돌려봤다 V5 하나로 얼마나 실행을 했고 어떤 입력 기록들을 남겼는지 집중을 해보았다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<h3 data-ke-size="size23">어떤 입력이 더 시험 해볼만 한지 어떻게 알까?</h3>
+<p data-ke-size="size16">V5의 두번째 글자를 바꾸는건 입력을 만드는 작업이다. 바꾼 입력을 넣어 보고 이전과 다른 부분이 실행 됐는지 살펴 보는건 실행 결과를 활용하는 작업이다. AFL++는 두 작업을 반복을 한다. 이렇게 보관을 해서 다시 사용하는 입력 모음이 화면에서 나온 코퍼스(Corpus) 라고 한다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<h4 data-ke-size="size20">실행 파일만 갖고 있다면 어떻게 관찰을 할까?</h4>
+<p data-ke-size="size16">이건 아까 얘기 했던 이미 빌드된 실행 파일들(바이너리)의 동작 부분들을 확인 할려면 Jackalop라는 도구를 사용하면 된다. </p>
+<p data-ke-size="size16">같은 볼륨 예제로 생각을 하면 V5와 Vx를 받을때 각각 어느 부분이 실행 하는지 동작 중에 살펴보는 방식이다.</p>
+<h2 data-ke-size="size26"> </h2>
+<h2 data-ke-size="size26">마치며</h2>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"><span>처음에는 퍼저가 입력을 많이 만들어서 넣는 것만 생각했다. 그런데 </span>V5<span>와 </span>Vx<span>를 비교해 보니 둘 다 정상적으로 종료됐는데도 실행 기록은 달랐다. 이 차이를 보고 나니 AFL++가 왜 어떤 입력을 보관해 두는지 이해됐다. 기존 입력들이 지나가지 않았던 코드를 실행한 입력이라면 그 입력을 바꿔서 그 근처의 처리도 더 시험해 볼 수 있기 때문이다.</span></p></div>
+{% endraw %}
