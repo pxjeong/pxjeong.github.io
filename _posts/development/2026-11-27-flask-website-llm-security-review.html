@@ -1,0 +1,80 @@
+---
+layout: post
+title: "Flask를 이용한 웹사이트 구축 및 LLM 활용 취약점 점검"
+date: 2026-11-27T05:58:21+09:00
+categories: ["개발"]
+excerpt: "Codecure 팀 프로젝트에서 Flask 웹사이트를 구축하고 LLM으로 취약점을 점검하며 보완한 과정을 기록하였다."
+---
+{% raw %}
+<div class="tistory-import"><p data-ke-size="size16"><span style="color: #9d9d9d;">2026.11.24_Codecure Team Project</span></p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<h3 data-ke-size="size23"><span style="color: #000000;">왜 이 프로젝트를 하게 됐나?</span></h3>
+<p data-ke-size="size16"><span style="color: #000000;">내가 배우고 싶은 분야는 시스템 해킹쪽이다. 그런데 갑자기 웬 웹 사이트 구축이랑 보완을 할까?</span></p>
+<p data-ke-size="size16"><span style="color: #000000;">대회들을 나가면서 제오파디 문제들을 살펴봤는데 내가 하는 분야만 나오는것이 아닌 다양한 분야로 나온다는것을 알았다.</span></p>
+<p data-ke-size="size16"><span style="color: #000000;">그래서 나는 다양한 분야도 조금씩 실습과 이론 공부를 해가면서 실력을 키워보고자 한다!</span></p>
+<p data-ke-size="size16"><span style="color: #000000;">그래서 제일 약한 분야이기도 하고 아무 지식도 없는 웹쪽을 먼저 공부를 해볼까 했었다</span></p>
+<p data-ke-size="size16">때마침 코드큐어에서 팀 프로젝트를 하게 됐기도 했고 다른 팀원분들의 하고 싶은 분야가 웹이였기에 웹쪽으로 프로젝트를 진행했다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">그래서 우리가 직접 웹사이트를 구축해보고 LLM을 이용해서 취약점을 찾아내서 공부를 한 뒤에 그 취약점을 막아내는 형식으로 진행을 해보았다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">써보았던 기술은 Flask를 이용한 서버 데이터 처리 및  SQLite를 이용한 데이터베이스 저장 및 요청 시스템으로 웹사이트를 구축해보았다.</p>
+<p data-ke-size="size16"> </p>
+<p><figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="830" data-origin-width="1784"><span data-phocus="/assets/img/posts/flask-website-llm-security-review/image-01.png" data-url="/assets/img/posts/flask-website-llm-security-review/image-01.png"><img alt="Flask와 SQLite로 구축한 갤러리 웹사이트의 자유게시판" data-origin-height="830" data-origin-width="1784" height="830" loading="lazy" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" src="/assets/img/posts/flask-website-llm-security-review/image-01.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FHNDWX%2FdJMcair6kkJ%2FAAAAAAAAAAAAAAAAAAAAAEGfHCI6uYIH-Qc8XWKiZ6Flbn6HEUAtT8BPEzFoY0gH%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1796050799%26allow_ip%3D%26allow_referer%3D%26signature%3DPYUCkWcRHIG2XejYWPpcmW%252BHGOE%253D" width="1784"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">그렇게 구축한 간단한 갤러리 웹사이트를 만들었고 다양한 공격 시도들을 해봤지만 AI의 기술력은 대단해서 알고 있는 공격들은 전부 막혔다...</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">그래서 CLI Codex (daybreak blue)를 이용해서 오랜 시간에 걸쳐  취약점들을 찾아냈다.</p>
+<table border="1" data-ke-align="alignLeft" style="border-collapse: collapse; width: 100%;">
+<tbody>
+<tr>
+<td style="text-align: left;"><span>1</span></td>
+<td style="text-align: left;"><span>로그인 시도 횟수 제한 부족</span></td>
+<td style="text-align: left;"><span>반복적인 비밀번호 추측 공격에 취약할 가능성</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><span>2</span></td>
+<td style="text-align: left;"><span>약한 비밀번호 허용</span></td>
+<td style="text-align: left;"><span>쉽게 추측할 수 있는 비밀번호 사용 가능</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><span>3</span></td>
+<td style="text-align: left;"><span>서버 프로그램 버전 노출</span></td>
+<td style="text-align: left;"><span>서버 기술과 버전에 대한 정보 제공</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><span>4</span></td>
+<td style="text-align: left;"><span>HTTPS 미적용</span></td>
+<td style="text-align: left;"><span>로그인 정보와 세션 쿠키가 네트워크에서 노출될 위험</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><span>5</span></td>
+<td style="text-align: left;"><span>CSP 보안 정책 미설정</span></td>
+<td style="text-align: left;"><span>악성 스크립트 실행 시 피해를 제한하는 장치 부족</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><span>6</span></td>
+<td style="text-align: left;"><span>클릭재킹 방어 헤더 없음</span></td>
+<td style="text-align: left;"><span>다른 웹페이지에 사이트가 삽입될 위험</span></td>
+</tr>
+</tbody>
+</table>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이렇게 취약점들이 나오게 됐고 로그인 시도 횟수 제한 부족은 3번 이상 로그인을 시도 할 시 10분정도 타임아웃을 걸어두게 보안을 강화 했고 약한 비밀번호 허용과 같은 취약점은 아이디와 비밀번호가 문자가 3개이상 일치하지 않고 특수문자가 2개 이상 들어가게끔 만들었다.</p>
+<p data-ke-size="size16">또한 서버 프로그램 버전 노출은 서버에서 사용한 프로그램의 이름과 버전이 보이기에 이러한 부분도 억지로 프로그래밍을 통해서 이름을 바꾸었다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">그리고 CSP 보안 정책 미설정 이부분도</p>
+<p><figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-height="862" data-origin-width="1900"><span data-phocus="/assets/img/posts/flask-website-llm-security-review/image-02.png" data-url="/assets/img/posts/flask-website-llm-security-review/image-02.png"><img alt="CSP Report-Only 응답 헤더 추가 전후 비교" data-origin-height="862" data-origin-width="1900" height="862" loading="lazy" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" src="/assets/img/posts/flask-website-llm-security-review/image-02.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FcNfZYc%2FdJMcafvp06x%2FAAAAAAAAAAAAAAAAAAAAALD-CavkLBxVobavD4uLsp1JAxBpzO6un5Bam4wkTLmX%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1796050799%26allow_ip%3D%26allow_referer%3D%26signature%3DQ4QJg6hcUxowq7rXrdQz1Fj2Ux0%253D" width="1900"/></span></figure>
+</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이런식으로 정책 설정까지 보완해나갔다.</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">나는 여기서 그치지 않고 이 프로젝트를 웹 방화벽을 이용을 해서 공격 탐지를 만들고 또 공격 룰도 설정 해보면서 스크립트를 이용해서 공격 차단 시스템인 IPS 기능까지 확장을 해나갈 예정이다!</p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16"> </p>
+<p data-ke-size="size16">이 프로젝트에 대해서 내용이 더 궁금하다면 댓글에 이메일을 남겨주면 PPT와 어떻게 해나갔는지에 관하여 보내주겠다.</p>
+<p data-ke-size="size16"> </p>
+<h3 data-ke-size="size23">마치며 </h3>
+<p data-ke-size="size16">이 프로젝트는 굉장히 나에게 도움이 되는 시간이였다. 웹을 구축을 해보아야하니 웹쪽에 자연스럽게 공부를 하게 됐고 처음 안 사실들이 많아서 재미가 있었고 또 원래 알고 있었던 취약점들이 아닌 내가 구축한 웹사이트의 취약점을 LLM을 활용해서 알아보니 되게 신기했던 경험이였고 보완해 나가는 과정도 굉장히 재미가 있었고 뜻깊었던 프로젝트였던거 같다.</p></div>
+{% endraw %}
