@@ -132,12 +132,12 @@ excerpt: "IDS와 IPS의 역할과 배치 방식 그리고 탐지 방법과 운�
 <p data-ke-size="size16"><span>예를 들어 웹 서버 앞에 놓인 장비가 요청의 특정 문자열을 찾는다면 </span><b><span>관찰 대상은 네트워크 트래픽</span></b><span>이고 </span><b><span>판단 방식은 시그니처 기반 탐지</span></b><span>다. 장비가 실제 통신 경로에서 일치한 패킷을 차단한다면 </span><b><span>인라인 IPS로 동작하는 사례</span></b><span>가 된다.</span></p>
 <p data-ke-size="size16"> </p>
 <p data-ke-size="size16"> </p>
-<div data-ke-type="moreLess" data-text-less="닫기" data-text-more="더보기"><a class="btn-toggle-moreless">더보기</a>
+<details data-ke-type="moreLess" data-text-less="닫기" data-text-more="더보기"><summary class="btn-toggle-moreless">더보기</summary>
 <div class="moreless-content">
 <p data-ke-size="size16">TMI : 내가 이전 블로그에서 썼었던 Wazuh는 호스트 기반 침입 탐지 시스템으로 <b>능동 대응(Active Response) 기능을 통해 IPS와 유사한 차단 역할</b>도 수행할 수 있다.  탐지 기능과 차단 역할도 공격 룰 규칙과 스크립트를 넣으면 되므로 IPS에 가깝다. 하지만 또 탐지 후 호스트/방화벽 수준에서 대응하는 형태이므로 IPS라고 단정은 못짓는다.</p>
 <p data-ke-size="size16"><span data-complete="true" data-sfc-cp="" data-sfc-root="c"><span>현재 Wazuh는 단순 IDS/IPS를 넘어 </span><b><span>로그 수집 및 분석(SIEM)</span></b><span>, </span><b><span>위협 탐지 및 대응(XDR)</span></b><span> 기능을 아우르는 오픈소스 보안 플랫폼으로 쓰인다.</span></span></p>
 </div>
-</div>
+</details>
 <h2 data-ke-size="size26"> </h2>
 <h2 data-ke-size="size26">실제로 활용할 때는 무엇을 고려해야 할까?</h2>
 <p data-ke-size="size16"> </p>
@@ -210,3 +210,4 @@ excerpt: "IDS와 IPS의 역할과 배치 방식 그리고 탐지 방법과 운�
 <div> </div>
 </div></div>
 {% endraw %}
+
