@@ -5,7 +5,7 @@ date: 2026-11-25T15:02:47+09:00
 categories: ["블로그/기술문서"]
 ---
 {% raw %}
-<div class="tistory-import"><p data-ke-size="size16"> </p>
+<div class="tistory-import fuzzing-article"><p data-ke-size="size16"> </p>
 <p data-ke-size="size16">프로그램을 만들면 보통 사람들은 먼저 정상적인 값들을 입력을 하는데</p>
 <p data-ke-size="size16">예를 들어 게임의 볼륨 설정에 5를 넣었을때 소리의 크기가 제대로 바뀌는지 확인하는 식이다.</p>
 <p data-ke-size="size16">그런데 숫자가 들어가야 하는 곳에 문자를 넣거나 또는 아무 값도 입력하지 않는다면 프로그램은 어떻게 작동을 할까?</p>
@@ -23,26 +23,26 @@ categories: ["블로그/기술문서"]
 <p data-ke-size="size16">예를 들어서 <span style="background-color: #9d9d9d;">V5</span>를 읽으면 볼륨 설정값 5를 받아들이는 프로그램이 있다고 가정을 한다면 이 프로그램을 테스트를 할려면</p>
 <p data-ke-size="size16">아래와 같은 입력들을 생각 할 수 있다.</p>
 <p data-ke-size="size16"> </p>
-<table border="1" data-ke-align="alignLeft" style="border-collapse: collapse; width: 100%;">
+<div aria-label="입력별 확인할 내용" class="fuzzing-table-scroll" role="region" tabindex="0"><table class="fuzzing-table"><thead><tr><th scope="col">입력</th><th scope="col">확인할 내용</th></tr></thead>
 <tbody>
 <tr>
-<td>V5</td>
+<th scope="row">V5</th>
 <td>정상적인 볼륨 값을 받아들이는가?</td>
 </tr>
 <tr>
-<td>Vx</td>
+<th scope="row">Vx</th>
 <td>숫자 대신 문자가 들어오면 거부하는가?</td>
 </tr>
 <tr>
-<td>V</td>
+<th scope="row">V</th>
 <td>볼륨 값이 빠져 있으면 어떻게 처리하는가?</td>
 </tr>
 <tr>
-<td>X5</td>
+<th scope="row">X5</th>
 <td>알 수 없는 설정 종류를 어떻게 처리하는가?</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p data-ke-size="size16"> </p>
 <p data-ke-size="size16"> </p>
 <p data-ke-size="size16">직접 사람이 표의 입력을 하나씩 넣을수도 있고 퍼저에 <span style="background-color: #9d9d9d;">V5</span>를 주고 여러 변형을 자동으로 시험하게 할 수도 있다.</p>
@@ -83,7 +83,7 @@ categories: ["블로그/기술문서"]
 <p data-ke-size="size16">정리를 하면<span style="background-color: #9d9d9d;"> V</span>5에서 <span style="background-color: #9d9d9d;">Vx</span>를 만드는 과정은 <b>변이</b>이고 <span style="background-color: #9d9d9d;">Vx</span>가 새 경로를 실행 했는지 확인을 해서 다음 테스트에 활용하는 과정은 <b>커버리지 피드백</b>이다. 두 개념은 한 퍼저에서 함께 사용 될 수 있다.</p>
 <p data-ke-size="size16"> </p>
 <p data-ke-size="size16"> </p>
-<h2 data-ke-size="size26" style="color: #000000; text-align: start;"><b>AFL++와 Jackalop는 어떻게 관찰을 할까?</b></h2>
+<h2 data-ke-size="size26" style="color: #000000; text-align: start;"><b>AFL++와 Jackalope는 어떻게 관찰을 할까?</b></h2>
 <p data-ke-size="size16"> </p>
 <p data-ke-size="size16"><span>앞서 얘기 한것처럼 퍼저는 </span><b><span>입력에 따라 프로그램의 어느 부분이 실행됐는지</span></b><span> 확인을 할 수 있다. 코드가 실행된 흔적을 남기거나 수집하는 작업을 </span><b><span>계측</span></b><span>이라고 한다. AFL++와 Jackalope의 차이는 같은 볼륨 예제를 놓고 보면 이해하기 쉽다.</span></p>
 <p data-ke-size="size16"> </p>
@@ -99,35 +99,35 @@ categories: ["블로그/기술문서"]
 <p data-ke-size="size16">그리고 AFL++에는 모드가 있는데 이미 만들어진 실행 파일을 대상으로 쓰는 QEMU 모드도 있다! 하지만 이번 실습에서는</p>
 <p data-ke-size="size16"><span style="background-color: #9d9d9d;">volume.c</span> 라는 실행 파일을 직접 작성을 해볼것이기에 실행 파일을 만들 때 기록 기능을 넣는 방식으로 사용 해볼거다.</p>
 <p data-ke-size="size16"> </p>
-<h4 data-ke-size="size20" style="color: #000000; text-align: start;"><b>Jackalop</b></h4>
+<h4 data-ke-size="size20" style="color: #000000; text-align: start;"><b>Jackalope</b></h4>
 <p data-ke-size="size16"><b> Jackalope</b>는 Google Project Zero의 <b>바이너리 커버리지 기반 퍼저</b>다. <span>기본 구성에서는 </span><b><span>TinyInst</span></b><span>를 사용해 이미 빌드된 프로그램이 실행되는 동안 경로를 관찰을 할것이다. 공식 문서에는 Windows, macOS, Linux, Android 지원이 안내되어 있고 테스트 입력은 파일이나 공유 메모리로 전달할 수 있습니다.</span></p>
 <p data-ke-size="size16"> </p>
 <p data-ke-size="size16"><span>두 퍼저 모두 </span><b>V5<span>와 </span>Vx<span>가 프로그램 안에서 서로 다른 부분을 실행했는지</span></b><span> 살펴볼 수 있다. 이번 AFL++ 실습에서는 그 차이를 기록할 수 있도록 실행 파일을 직접 만들고 Jackalope의 기본 방식에서는 이미 만들어진 실행 파일을 실행하면서 그 차이를 관찰을 해볼거다.</span></p>
 <p data-ke-size="size16"> </p>
-<table border="1" data-ke-align="alignLeft" style="border-collapse: collapse; width: 100%;">
+<p class="fuzzing-table-hint" id="fuzzing-table-hint-2">표는 좌우로 밀어서 볼 수 있습니다.</p><div aria-describedby="fuzzing-table-hint-2" aria-label="AFL++와 Jackalope 비교" class="fuzzing-table-scroll fuzzing-table-wide" role="region" tabindex="0"><table class="fuzzing-table"><thead><tr>
+<th scope="col"><b>비교 항목</b></th>
+<th scope="col"><b>AFL++의 이번 실습 방식</b></th>
+<th scope="col"><b>Jackalope의 기본 방식</b></th>
+</tr></thead>
 <tbody>
+
 <tr>
-<td style="width: 20.1163%;"><b>비교 항목</b></td>
-<td style="width: 43.372%;"><b>AFL++의 이번 실습 방식</b></td>
-<td style="width: 36.5117%;"><b>Jackalop의 기본 방식</b></td>
+<th scope="row">언제 계측하는가?</th>
+<td>소스 코드를 컴파일할 때</td>
+<td>이미 빌드된 프로그램이 실행될 때</td>
 </tr>
 <tr>
-<td style="width: 20.1163%;">언제 계측하는가?</td>
-<td style="width: 43.372%;">소스 코드를 컴파일할 때</td>
-<td style="width: 36.5117%;">이미 빌드된 프로그램이 실행될 때</td>
+<th scope="row">어떤 기능을 사용하는가?</th>
+<td>afl-clang-fast로 빌드하고 afl-showmap으로 기록 확인</td>
+<td>TinyInst를 사용해 바이너리 실행을 관찰</td>
 </tr>
 <tr>
-<td style="width: 20.1163%;">어떤 기능을 사용하는가?</td>
-<td style="width: 43.372%;">afl-clang-fast로 빌드하고 afl-showmap으로 기록 확인</td>
-<td style="width: 36.5117%;">TinyInst를 사용해 바이너리 실행을 관찰</td>
-</tr>
-<tr>
-<td style="width: 20.1163%;">이번 글에 사용한 근거</td>
-<td style="width: 43.372%;">볼륨 예제를 직접 실행한 결과</td>
-<td style="width: 36.5117%;">공식 저장소의 README</td>
+<th scope="row">이번 글에 사용한 근거</th>
+<td>볼륨 예제를 직접 실행한 결과</td>
+<td>공식 저장소의 README</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p data-ke-size="size16"> </p>
 <hr contenteditable="false" data-ke-style="style5" data-ke-type="horizontalRule"/>
 <h2 data-ke-size="size26" style="color: #000000; text-align: start;"><b>AFL++ 실습</b></h2>
@@ -231,30 +231,30 @@ afl-fuzz -i seeds -o results -- ./volume</code></pre>
 <p><figure class="imageblock alignLeft" data-ke-mobilestyle="widthOrigin" data-origin-height="866" data-origin-width="1340"><span data-phocus="/assets/img/posts/fuzzing-aflplusplus-coverage/image-06.png" data-url="/assets/img/posts/fuzzing-aflplusplus-coverage/image-06.png"><img alt="AFL++ 자동 퍼징 실행 화면과 코퍼스 및 크래시 통계" data-origin-height="866" data-origin-width="1340" height="866" loading="lazy" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" src="/assets/img/posts/fuzzing-aflplusplus-coverage/image-06.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FbX9uZs%2FdJMb9924eb2%2FAAAAAAAAAAAAAAAAAAAAAMHaKCLvoyMlVCfH1JyEl5MQFhvGGzWWVHXeuXRO23Ir%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1796050799%26allow_ip%3D%26allow_referer%3D%26signature%3DlvG1Spn7xnXjuSPguBuelScUzyA%253D" width="763"/></span></figure>
 </p>
 <p data-ke-size="size16"> </p>
-<table border="1" data-ke-align="alignLeft" style="border-collapse: collapse; width: 100%; height: 84px;">
+<p class="fuzzing-table-hint" id="fuzzing-table-hint-3">표는 좌우로 밀어서 볼 수 있습니다.</p><div aria-describedby="fuzzing-table-hint-3" aria-label="AFL++ 실행 화면 항목" class="fuzzing-table-scroll fuzzing-table-wide" role="region" tabindex="0"><table class="fuzzing-table"><thead><tr style="height: 21px;">
+<th scope="col"><b>화면에서 본 항목</b></th>
+<th scope="col"><b>뜻</b></th>
+<th scope="col"><b>내 실행 결과</b></th>
+</tr></thead>
 <tbody>
+
 <tr style="height: 21px;">
-<td style="height: 21px;"><b>화면에서 본 항목</b></td>
-<td style="height: 21px;"><b>뜻</b></td>
-<td style="height: 21px;"><b>내 실행 결과</b></td>
+<th scope="row">total execs</th>
+<td>프로그램을 실행한 횟수</td>
+<td>[화면에 나온 값]</td>
 </tr>
 <tr style="height: 21px;">
-<td style="height: 21px;">total execs</td>
-<td style="height: 21px;">프로그램을 실행한 횟수</td>
-<td style="height: 21px;">[화면에 나온 값]</td>
+<th scope="row">corpus count</th>
+<td>퍼저가 다시 활용하려고 보관 중인 입력 수</td>
+<td>[화면에 나온 값]</td>
 </tr>
 <tr style="height: 21px;">
-<td style="height: 21px;">corpus count</td>
-<td style="height: 21px;">퍼저가 다시 활용하려고 보관 중인 입력 수</td>
-<td style="height: 21px;">[화면에 나온 값]</td>
-</tr>
-<tr style="height: 21px;">
-<td style="height: 21px;">saved crashes</td>
-<td style="height: 21px;">프로그램을 비정상 종료시킨 입력을 저장한 수</td>
-<td style="height: 21px;">[화면에 나온 값]</td>
+<th scope="row">saved crashes</th>
+<td>프로그램을 비정상 종료시킨 입력을 저장한 수</td>
+<td>[화면에 나온 값]</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p data-ke-size="size16"> </p>
 <p data-ke-size="size16"> </p>
 <p data-ke-size="size16">이렇게 자동 입력 테스트까지 돌려봤다 V5 하나로 얼마나 실행을 했고 어떤 입력 기록들을 남겼는지 집중을 해보았다.</p>
@@ -265,7 +265,7 @@ afl-fuzz -i seeds -o results -- ./volume</code></pre>
 <p data-ke-size="size16"> </p>
 <p data-ke-size="size16"> </p>
 <h4 data-ke-size="size20">실행 파일만 갖고 있다면 어떻게 관찰을 할까?</h4>
-<p data-ke-size="size16">이건 아까 얘기 했던 이미 빌드된 실행 파일들(바이너리)의 동작 부분들을 확인 할려면 Jackalop라는 도구를 사용하면 된다. </p>
+<p data-ke-size="size16">이건 아까 얘기 했던 이미 빌드된 실행 파일들(바이너리)의 동작 부분들을 확인 할려면 Jackalope라는 도구를 사용하면 된다. </p>
 <p data-ke-size="size16">같은 볼륨 예제로 생각을 하면 V5와 Vx를 받을때 각각 어느 부분이 실행 하는지 동작 중에 살펴보는 방식이다.</p>
 <h2 data-ke-size="size26"> </h2>
 <h2 data-ke-size="size26">마치며</h2>

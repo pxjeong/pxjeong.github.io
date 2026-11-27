@@ -291,3 +291,52 @@ main:focus { outline: none; }
 .tistory-import [style*="background-color: #f6e199"] { color: #110c09 !important; }
 .tistory-import details { margin: 16px 0; padding: 12px 18px; border: 1px solid var(--line); }
 .tistory-import summary { color: var(--accent); cursor: pointer; }
+
+
+/* Keep imported fuzzing tables in the table layout; scroll only wide tables. */
+.fuzzing-article .fuzzing-table-scroll {
+  max-width: 100%;
+  margin: 20px 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.fuzzing-article .fuzzing-table-scroll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.prose .fuzzing-article .fuzzing-table {
+  display: table;
+  width: 100%;
+  margin: 0;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border: 0;
+  line-height: 1.7;
+}
+.fuzzing-article .fuzzing-table :is(th, td) {
+  padding: 12px 16px;
+  vertical-align: top;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+.fuzzing-article .fuzzing-table thead th {
+  background: #211913;
+  font-weight: 600;
+}
+.fuzzing-article .fuzzing-table tbody th { font-weight: 500; }
+.fuzzing-article .fuzzing-table-scroll:not(.fuzzing-table-wide) th:first-child { width: 5rem; }
+.fuzzing-article .fuzzing-table-wide .fuzzing-table { min-width: 34rem; }
+.fuzzing-article .fuzzing-table-wide th:first-child { width: 25%; }
+.fuzzing-article .fuzzing-table-hint { display: none; }
+@media (max-width: 640px) {
+  .fuzzing-article .fuzzing-table :is(th, td) { padding: 10px 12px; }
+  .prose .fuzzing-article .fuzzing-table-hint {
+    display: block;
+    margin: 20px 0 8px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .fuzzing-article .fuzzing-table-hint + .fuzzing-table-scroll { margin-top: 0; }
+}
